@@ -19,7 +19,6 @@ A modern, feature-rich eCommerce admin portal dashboard built with [Next.js](htt
 - **API:** REST
 - **Database:** MongoDB
 
-
 ## Getting Started
 
 ### Prerequisites
@@ -30,7 +29,7 @@ A modern, feature-rich eCommerce admin portal dashboard built with [Next.js](htt
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/crisp-portal.git
+git clone https://github.com/shamim26/admin-portal.git
 cd crisp-portal
 npm install
 # or
@@ -63,6 +62,5 @@ Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
 3. Commit your changes (`git commit -m 'Add some feature'`)
 4. Push to the branch (`git push origin feature/YourFeature`)
 5. Open a pull request
-
 
 Made with ❤️ .
