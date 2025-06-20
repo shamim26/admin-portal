@@ -46,7 +46,7 @@ export default function CustomInput<T extends FieldValues>({
     <FormItem className={className}>
       <FormLabel>{label}</FormLabel>
       <FormControl>
-        <div className="relative mb-2">
+        <div className="relative">
           <Input
             {...field}
             type={isPasswordType ? (showPassword ? "text" : "password") : type}
@@ -65,9 +65,9 @@ export default function CustomInput<T extends FieldValues>({
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {showPassword ? (
-                <EyeOffIcon className="h-4 w-4" />
-              ) : (
                 <EyeIcon className="h-4 w-4" />
+              ) : (
+                <EyeOffIcon className="h-4 w-4" />
               )}
               <span className="sr-only">
                 {showPassword ? "Hide password" : "Show password"}
