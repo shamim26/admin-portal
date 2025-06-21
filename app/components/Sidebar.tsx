@@ -6,8 +6,8 @@ import {
   SettingsIcon,
   UsersIcon,
   ImageIcon,
-  MenuIcon,
   LogOutIcon,
+  LayoutList,
 } from "lucide-react";
 import Brand from "./Brand";
 import Link from "next/link";
@@ -25,7 +25,7 @@ export default function Sidebar() {
           {navItems.map((item) => (
             <Link key={item.label} href={item.href}>
               <div
-                className={`flex items-center justify-start gap-1 px-8 py-2 rounded-md ${
+                className={`flex items-center justify-start gap-1 px-8 py-2 rounded ${
                   item.href === pathname ? "bg-primary text-white" : ""
                 }`}
               >
@@ -55,7 +55,7 @@ const navItems = [
   {
     label: "Categories",
     href: "/categories",
-    icon: <MenuIcon size={20} />,
+    icon: <LayoutList size={20} />,
   },
   {
     label: "Products",
