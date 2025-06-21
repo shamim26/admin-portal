@@ -12,11 +12,14 @@ import { BellIcon, ChevronDownIcon, MenuIcon, SearchIcon } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <div className="bg-white flex items-center justify-between px-5 py-5">
+    <div className="bg-white flex items-center justify-between px-5 py-5 shadow">
       <div className=" relative flex items-center gap-2">
-        <MenuIcon size={25} className="mr-5"/>
+        <MenuIcon size={25} className="mr-5" />
         <Input type="text" placeholder="Search" className="w-2xs" />
-        <SearchIcon size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+        <SearchIcon
+          size={20}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+        />
       </div>
       <div className="flex items-center gap-4">
         <DropdownMenu>

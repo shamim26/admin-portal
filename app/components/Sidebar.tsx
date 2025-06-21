@@ -17,7 +17,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   return (
     <div>
-      <div className="flex flex-col h-screen w-60 px-3 overflow-y-auto bg-white">
+      <div className=" flex flex-col h-screen w-60 px-3 overflow-y-auto bg-white">
         <div className="my-4">
           <Brand />
         </div>
