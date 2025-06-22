@@ -1,14 +1,14 @@
-import { User } from "@/app/interfaces/User";
+import { UserDocument } from "@/app/(auth)/auth.dto";
 import { create } from "zustand";
 
 interface AuthStore {
-  user: User | null;
-  setUser: (user: User) => void;
+  user: UserDocument | null;
+  setUser: (user: UserDocument) => void;
 }
 
 const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  setUser: (user: User) => set({ user }),
+  setUser: (user: UserDocument) => set({ user }),
 }));
 
 export default useAuthStore;
