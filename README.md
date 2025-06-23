@@ -50,7 +50,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
 
 ```
 /components    # Reusable UI components
-/app         # Next.js app directory for pages and routing
+/app           # Next.js app directory for pages and routing
 /utils         # Utility functions
 /public        # Static assets
 ```

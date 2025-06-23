@@ -17,3 +17,8 @@ export interface UserDocument {
   isBanned: boolean;
   refreshToken?: string;
 }
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
