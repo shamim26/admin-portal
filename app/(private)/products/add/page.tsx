@@ -5,7 +5,7 @@ export default function AddProductPage() {
   return (
     <div>
       <PageHeader title="Add Product" />
-      <div className="bg-white rounded p-4">
+      <div className="">
         <ProductForm />
       </div>
     </div>

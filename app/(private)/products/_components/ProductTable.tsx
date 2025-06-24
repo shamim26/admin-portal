@@ -1,3 +1,4 @@
+import ActionButton from "@/app/components/button/ActionButton";
 import {
   Table,
   TableHead,
@@ -6,6 +7,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { Eye, Pencil, Trash } from "lucide-react";
 
 export default function ProductTable() {
   return (
@@ -17,18 +19,30 @@ export default function ProductTable() {
           <TableHead>Price</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Quantity</TableHead>
-          <TableHead>Actions</TableHead>
+          <TableHead className="pl-8">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow>
-          <TableCell>Product 1</TableCell>
-          <TableCell>Description 1</TableCell>
-          <TableCell>$99.99</TableCell>
-          <TableCell>Electronics</TableCell>
-          <TableCell>10</TableCell>
-          <TableCell>Actions 1</TableCell>
-        </TableRow>
+        {Array.from({ length: 10 }).map((_, index) => (
+          <TableRow key={index}>
+            <TableCell>Product {index + 1}</TableCell>
+            <TableCell>Description {index + 1}</TableCell>
+            <TableCell>${Math.floor(Math.random() * 1000)}</TableCell>
+            <TableCell>Electronics</TableCell>
+            <TableCell>{Math.floor(Math.random() *124)}</TableCell>
+            <TableCell>
+              <ActionButton>
+                <Eye />
+              </ActionButton>
+              <ActionButton>
+                <Pencil className="text-primary" />
+              </ActionButton>
+              <ActionButton>
+                <Trash color="red" />
+              </ActionButton>
+            </TableCell>
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   );

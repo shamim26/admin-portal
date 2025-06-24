@@ -17,7 +17,7 @@ export default function LowStock() {
     <Card className="rounded border-none shadow-none p-5 ">
       <PageHeader title="Low Stock" />
       <Table>
-        <TableHeader className="bg-primary/10">
+        <TableHeader>
           <TableRow>
             <TableHead>#</TableHead>
             <TableHead>Product</TableHead>
@@ -31,7 +31,6 @@ export default function LowStock() {
             <TableCell>1</TableCell>
             <TableCell>Product 1</TableCell>
             <TableCell>10</TableCell>
-
             <TableCell>100</TableCell>
             <TableCell>
               <ActionButton>
