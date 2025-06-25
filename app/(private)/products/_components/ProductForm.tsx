@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useState } from "react";
 import { X, Upload, Plus } from "lucide-react";
+import { TextEditor } from "./TextEditor";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -202,6 +203,19 @@ export default function ProductForm() {
                     placeholder="Enter offer price"
                     type="number"
                   />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <div className="col-span-3">
+                    <TextEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Description"
+                    />
+                  </div>
                 )}
               />
             </div>

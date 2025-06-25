@@ -1,9 +1,9 @@
 import apiClient from "@/services/apiClient";
-import { Product } from "./product.dto";
+import { GetProductDto, Product } from "./product.dto";
 
 export class ProductService {
-  static async getProducts() {
-    const response = await apiClient.get("/products");
+  static async getProducts(options: GetProductDto) {
+    const response = await apiClient.get("/products", { params: options });
     return response.data;
   }
 

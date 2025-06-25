@@ -14,3 +14,9 @@ export type Product = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type GetProductDto = {
+  page?: number;
+  limit?: number;
+  search?: string;
+};
