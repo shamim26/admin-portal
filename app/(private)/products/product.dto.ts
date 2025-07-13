@@ -15,8 +15,8 @@ export type Product = {
   updatedAt: Date;
 };
 
-export type GetProductDto = {
+export interface GetProductDto {
   page?: number;
   limit?: number;
   search?: string;
-};
+}

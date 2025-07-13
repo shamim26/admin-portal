@@ -13,7 +13,8 @@ export type MWResponseType<T> = {
 
 // Create an Axios instance with default config
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api",
+  baseURL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -34,7 +35,7 @@ apiClient.interceptors.request.use(
 // Response interceptor to handle responses and errors globally
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    return response.data;
+    return response;
   },
   (error) => {
     return Promise.reject(

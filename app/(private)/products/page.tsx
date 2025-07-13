@@ -3,13 +3,20 @@ import PrimaryButton from "@/app/components/button/PrimaryButton";
 import ProductTable from "./_components/ProductTable";
 import PageHeader from "@/app/components/PageHeader";
 import SearchField from "@/app/components/input-fields/SearchField";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DynamicPagination from "@/app/components/DynamicPagination";
 import Link from "next/link";
 import { ROUTES } from "@/lib/slugs";
+import useProductStore from "@/stores/product.store";
 
 export default function ProductsPage() {
   const [searchValue, setSearchValue] = useState("");
+
+  const { fetchAllProducts } = useProductStore();
+
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
 
   return (
     <div>

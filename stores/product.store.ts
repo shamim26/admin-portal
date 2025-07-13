@@ -7,7 +7,7 @@ type ProductStore = {
   totalPages: number;
   currentPage: number;
   updatePage: (page: number) => void;
-  fetchAllProducts: (options: GetProductDto) => Promise<Product[]>;
+  fetchAllProducts: (options?: GetProductDto) => Promise<Product[]>;
 };
 
 const useProductStore = create<ProductStore>((set) => ({
@@ -15,7 +15,7 @@ const useProductStore = create<ProductStore>((set) => ({
   totalPages: 0,
   currentPage: 1,
   updatePage: (page: number) => set({ currentPage: page }),
-  fetchAllProducts: async (options: GetProductDto) => {
+  fetchAllProducts: async (options?: GetProductDto) => {
     const response = await ProductService.getProducts(options);
     set({
       products: response.data.payload.products,
