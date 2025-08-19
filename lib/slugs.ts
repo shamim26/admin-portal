@@ -1,4 +1,5 @@
 export class ROUTES {
+  static readonly HOME = "/";
   static readonly LOGIN = "/login";
   static readonly FORGOT_PASSWORD = "/forgot-password";
   static readonly CATEGORIES = "/categories";

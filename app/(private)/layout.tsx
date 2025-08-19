@@ -1,5 +1,6 @@
 import Navbar from "../components/navbar/Navbar";
 import Sidebar from "../components/Sidebar";
+import PrivateRoute from "./PrivateRoute";
 
 export default function PrivateLayout({
   children,
@@ -7,16 +8,18 @@ export default function PrivateLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex h-screen">
-      <div className="sticky top-0 h-screen z-20">
-        <Sidebar />
-      </div>
-      <div className="flex-1 overflow-auto">
-        <div className="sticky top-0 z-20">
-          <Navbar />
+    <PrivateRoute>
+      <div className="flex h-screen">
+        <div className="sticky top-0 h-screen z-20">
+          <Sidebar />
         </div>
-        <main className="p-5">{children}</main>
+        <div className="flex-1 overflow-auto">
+          <div className="sticky top-0 z-20">
+            <Navbar />
+          </div>
+          <main className="p-5">{children}</main>
+        </div>
       </div>
-    </div>
+    </PrivateRoute>
   );
 }

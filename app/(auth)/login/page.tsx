@@ -7,6 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import CustomInput from "../../components/input-fields/CustomInput";
 import Link from "next/link";
 import PrimaryButton from "../../components/button/PrimaryButton";
+import { useRouter } from "next/navigation";
+import { AuthService } from "../auth.service";
+import useAuthStore from "@/stores/auth.store";
+import { ROUTES } from "@/lib/slugs";
 
 const loginSchema = z.object({
   email: z.string().email().min(1),
@@ -14,6 +18,9 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { setUser, setGuest } = useAuthStore();
+
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -22,8 +29,25 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    try {
+      const res = await AuthService.login(data.email, data.password);
+      const user = res?.payload?.user ?? res?.user ?? null;
+      setUser(user);
+      setGuest(false);
+      router.replace(ROUTES.PRODUCTS);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || err?.message || "Login failed";
+      form.setError("email", { message });
+      form.setError("password", { message });
+    }
+  };
+
+  const onGuest = () => {
+    setUser(null);
+    setGuest(true);
+    router.replace(ROUTES.HOME);
   };
 
   return (
@@ -77,6 +101,14 @@ export default function LoginPage() {
         >
           Login
         </PrimaryButton>
+
+        <button
+          type="button"
+          onClick={onGuest}
+          className="w-full mt-2 border border-gray-300 rounded py-2 text-sm"
+        >
+          Continue as guest (read-only)
+        </button>
       </form>
     </Form>
   );
