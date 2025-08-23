@@ -8,7 +8,6 @@ import CustomInput from "../../components/input-fields/CustomInput";
 import Link from "next/link";
 import PrimaryButton from "../../components/button/PrimaryButton";
 import { useRouter } from "next/navigation";
-import { AuthService } from "../auth.service";
 import useAuthStore from "@/stores/auth.store";
 import { ROUTES } from "@/lib/slugs";
 
@@ -19,7 +18,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser, setGuest } = useAuthStore();
+  const { user, setGuest, login } = useAuthStore((state) => state);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -30,22 +29,15 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    try {
-      const res = await AuthService.login(data.email, data.password);
-      const user = res?.payload?.user ?? res?.user ?? null;
-      setUser(user);
-      setGuest(false);
-      router.replace(ROUTES.PRODUCTS);
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message || err?.message || "Login failed";
-      form.setError("email", { message });
-      form.setError("password", { message });
+    const res = await login(data.email, data.password);
+    if (res.success) {
+      router.replace(ROUTES.HOME);
     }
   };
 
+  console.log(user);
+
   const onGuest = () => {
-    setUser(null);
     setGuest(true);
     router.replace(ROUTES.HOME);
   };

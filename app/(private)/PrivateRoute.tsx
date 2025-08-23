@@ -1,56 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import useAuthStore from "@/stores/auth.store";
-import { AuthService } from "../(auth)/auth.service";
 import { ROUTES } from "@/lib/slugs";
+import Loader from "../components/Loader";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
 export default function PrivateRoute({ children }: PrivateRouteProps) {
-  const router = useRouter();
-  const { user, isGuest, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const { user, getUser } = useAuthStore((state) => state);
 
   useEffect(() => {
-    let mounted = true;
+    // Always call getUser to validate cookies on mount
+    // This will either return user data or fail and clear user state
+    getUser().finally(() => setLoading(false));
+  }, [getUser]);
 
-    const init = async () => {
-      try {
-        // Allow access if guest
-        if (isGuest) {
-          if (mounted) setLoading(false);
-          return;
-        }
+  if (loading) return <Loader variant="bars" />;
 
-        // If we already have a user, skip fetching
-        if (user) {
-          if (mounted) setLoading(false);
-          return;
-        }
-
-        const res = await AuthService.me();
-        const me = res?.payload?.user ?? res?.payload ?? res?.user ?? null;
-        if (mounted) setUser(me);
-        if (mounted) setLoading(false);
-      } catch (e) {
-        console.log(e);
-        if (!mounted) return;
-        setLoading(false);
-        router.replace(ROUTES.LOGIN);
-      }
-    };
-
-    init();
-    return () => {
-      mounted = false;
-    };
-  }, [isGuest, user, router, setUser]);
-
-  if (loading) return null;
+  if (!user) {
+    redirect(ROUTES.LOGIN);
+    return null;
+  }
 
   return <>{children}</>;
 }

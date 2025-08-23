@@ -6,16 +6,16 @@ export class AuthService {
       email,
       password,
     });
-    return response.data;
+    return response;
   }
 
-  static async me() {
+  static async getUser() {
     const response = await apiClient.get("/users");
-    return response.data;
+    return response;
   }
 
   static async logout() {
     const response = await apiClient.post("/users/logout");
-    return response.data;
+    return response;
   }
 }
