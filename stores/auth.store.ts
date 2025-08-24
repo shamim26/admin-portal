@@ -10,6 +10,7 @@ interface AuthStore {
   clearUser: () => void;
   login: (email: string, password: string) => Promise<MWResponseType>;
   getUser: () => Promise<MWResponseType>;
+  guestLogin: () => Promise<MWResponseType>;
   logout: () => void;
 }
 
@@ -32,6 +33,13 @@ const useAuthStore = create<AuthStore>()((set) => ({
     } else {
       // Clear user if API call fails (invalid/expired cookies)
       set({ user: null });
+    }
+    return response.data;
+  },
+  guestLogin: async () => {
+    const response = await AuthService.guestLogin();
+    if (response.data.success) {
+      set({ user: response.data.payload.user });
     }
     return response.data;
   },

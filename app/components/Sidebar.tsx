@@ -12,6 +12,7 @@ import {
 import Brand from "./Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useAuthStore from "@/stores/auth.store";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -36,7 +37,12 @@ export default function Sidebar() {
           ))}
         </div>
         <div className=" mt-auto mb-4">
-          <button className="flex items-center  gap-1 px-8 py-2 text-red-500">
+          <button
+            onClick={() => {
+              useAuthStore.getState().logout();
+            }}
+            className="flex items-center  gap-1 px-8 py-2 text-red-500 cursor-pointer"
+          >
             <LogOutIcon size={20} />
             Logout
           </button>

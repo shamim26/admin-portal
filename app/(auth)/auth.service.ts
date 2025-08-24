@@ -9,6 +9,11 @@ export class AuthService {
     return response;
   }
 
+  static async guestLogin() {
+    const response = await apiClient.post("/users/guest-login");
+    return response;
+  }
+
   static async getUser() {
     const response = await apiClient.get("/users");
     return response;

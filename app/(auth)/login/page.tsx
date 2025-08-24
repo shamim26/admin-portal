@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, setGuest, login } = useAuthStore((state) => state);
+  const { user, setGuest, login, guestLogin } = useAuthStore((state) => state);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -37,9 +37,12 @@ export default function LoginPage() {
 
   console.log(user);
 
-  const onGuest = () => {
-    setGuest(true);
-    router.replace(ROUTES.HOME);
+  const onGuest = async () => {
+    const res = await guestLogin();
+    if (res.success) {
+      setGuest(true);
+      router.replace(ROUTES.HOME);
+    }
   };
 
   return (
@@ -94,13 +97,14 @@ export default function LoginPage() {
           Login
         </PrimaryButton>
 
-        <button
+        <PrimaryButton
           type="button"
           onClick={onGuest}
-          className="w-full mt-2 border border-gray-300 rounded py-2 text-sm"
+          variant="outline"
+          className="bg-white text-black/65 w-full mt-2"
         >
           Continue as guest (read-only)
-        </button>
+        </PrimaryButton>
       </form>
     </Form>
   );
