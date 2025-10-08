@@ -1,6 +1,7 @@
 import DashboardCard from "./_components/DashboardCard";
 import LowStock from "./_components/LowStock";
 import SalesChart from "./_components/SalesChart";
+import TopCustomers from "./_components/TopCustomers";
 
 export default function DashboardPage() {
   return (
@@ -10,8 +11,11 @@ export default function DashboardPage() {
         <DashboardCard />
         <DashboardCard />
       </div>
-      <div className="mt-5">
-        <SalesChart />
+      <div className="flex mt-5">
+        <div className="w-2/3 mr-5">
+          <SalesChart />
+        </div>
+        <TopCustomers />
       </div>
       <div className="mt-3">
         <LowStock />
