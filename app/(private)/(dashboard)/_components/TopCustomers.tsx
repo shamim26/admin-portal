@@ -25,7 +25,7 @@ export default function TopCustomers() {
           <SelectTrigger className="w-[180px] h-8 text-sm rounded">
             This Month
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded">
             <SelectItem value="today">Today</SelectItem>
             <SelectItem value="this-week">This Week</SelectItem>
             <SelectItem value="this-month">This Month</SelectItem>

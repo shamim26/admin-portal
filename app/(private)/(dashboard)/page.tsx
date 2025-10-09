@@ -1,6 +1,7 @@
 import KpiCard from "../../components/card/KPICard";
 import LowStock from "./_components/LowStock";
 import OrderChart from "./_components/OrderChart";
+import RecentOrders from "./_components/RecentOrders";
 import SalesChart from "./_components/SalesChart";
 import TopCustomers from "./_components/TopCustomers";
 import { Banknote, CircleDollarSign, Container } from "lucide-react";
@@ -44,6 +45,9 @@ export default function DashboardPage() {
       </div>
       <div className="mt-5">
         <OrderChart />
+      </div>
+      <div className="mt-5">
+        <RecentOrders />
       </div>
     </div>
   );
