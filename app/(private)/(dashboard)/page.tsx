@@ -7,6 +7,13 @@ import SalesChart from "./_components/SalesChart";
 import TopCustomers from "./_components/TopCustomers";
 import { Banknote, CircleDollarSign, Container } from "lucide-react";
 
+const DUMMY_ACTIVITIES = [
+  { id: 1, text: "User John Doe created a new order #12345." },
+  { id: 2, text: "Product 'Laptop Pro' stock updated." },
+  { id: 3, text: "User Jane Smith registered." },
+  { id: 4, text: "Order #12344 has been shipped." },
+  { id: 5, text: "A new review was posted for 'Wireless Mouse'." },
+];
 export default function DashboardPage() {
   return (
     <div>
@@ -51,7 +58,7 @@ export default function DashboardPage() {
         <RecentOrders />
       </div>
       <div className="mt-5">
-        <ActivityTimeline activities={[]}/>
+        <ActivityTimeline activities={DUMMY_ACTIVITIES} />
       </div>
     </div>
   );

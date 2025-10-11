@@ -1,4 +1,10 @@
-import { Card } from "@/components/ui/card";
+import PageHeader from "@/app/components/PageHeader";
+import {
+  Timeline,
+  TimelineDescription,
+  TimelineHeader,
+  TimelineItem,
+} from "@/components/ui/timeline";
 import React from "react";
 
 interface ActivityTimelineProps {
@@ -8,41 +14,52 @@ interface ActivityTimelineProps {
   }[];
 }
 
-function generateRandomColor(text: string) {
+const generateRandomColor = (text: string): string => {
+  // Use hex codes instead of Tailwind class names
   const colors = [
-    "red-500",
-    "blue-500",
-    "green-500",
-    "yellow-500",
-    "purple-500",
+    "#22c55e", // green-500
+    "#6366f1", // indigo-500
+    "#06b6d4", // cyan-500
+    "#ef4444", // red-500
+    "#eab308", // yellow-500
+    "#ec4899", // pink-500
+    "#a855f7", // purple-500
+    "#3b82f6", // blue-500
+    "#f97316", // orange-500
+    "#14b8a6", // teal-500
   ];
 
-  const hash = text
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[hash % colors.length];
-}
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = text.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash % colors.length);
+  return colors[index];
+};
 
 const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }) => {
   return (
-    <Card className="rounded">
-      <h2 className="text-xl font-bold mb-6">Recent Activities</h2>
-      <ol className="border-l-2 border-dashed border-gray-700">
-        {activities.map((activity, index) => (
-          <li
-            key={activity.id}
-            className={`relative mb-8 ml-8 ${
-              index === activities.length - 1 ? "mb-0" : ""
-            }`}
-          >
-            <span
-              className={`absolute -left-[40.5px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-${generateRandomColor(activity.text)} border-2`}
-            ></span>
-            <p className="relative text-base text-gray-300">{activity.text}</p>
-          </li>
+    <div className="bg-white rounded p-6">
+      <PageHeader title="Recent Activities" />
+      <Timeline>
+        {activities.map((activity) => (
+          <TimelineItem key={activity.id}>
+            <TimelineHeader
+              style={
+                {
+                  "--dot-color": generateRandomColor(activity.text),
+                } as React.CSSProperties
+              }
+            />
+            <TimelineDescription className="">{activity.text}</TimelineDescription>
+          </TimelineItem>
         ))}
-      </ol>
-    </Card>
+        {activities.length === 0 && (
+          <p className="text-muted-foreground">No recent activities.</p>
+        )}
+      </Timeline>
+    </div>
   );
 };
 
