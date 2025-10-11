@@ -1,4 +1,5 @@
 import KpiCard from "../../components/card/KPICard";
+import ActivityTimeline from "./_components/ActivityTimeline";
 import LowStock from "./_components/LowStock";
 import OrderChart from "./_components/OrderChart";
 import RecentOrders from "./_components/RecentOrders";
@@ -48,6 +49,9 @@ export default function DashboardPage() {
       </div>
       <div className="mt-5">
         <RecentOrders />
+      </div>
+      <div className="mt-5">
+        <ActivityTimeline activities={[]}/>
       </div>
     </div>
   );
