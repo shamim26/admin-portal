@@ -14,7 +14,7 @@ import { Edit2Icon } from "lucide-react";
 
 export default function LowStock() {
   return (
-    <Card className="rounded border-none shadow-none p-5 ">
+    <Card className="rounded w-full border-none shadow-none p-5 ">
       <PageHeader title="Low Stock" />
       <Table>
         <TableHeader>

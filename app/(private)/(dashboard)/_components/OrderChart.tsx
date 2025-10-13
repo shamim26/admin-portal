@@ -29,7 +29,7 @@ export default function OrderChart() {
   ];
 
   return (
-    <Card className="border-none shadow-none rounded">
+    <Card className="w-full border-none shadow-none rounded">
       <CardHeader>
         <CardTitle className="text-xl font-semibold">Orders</CardTitle>
       </CardHeader>

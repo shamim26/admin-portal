@@ -40,9 +40,9 @@ const generateRandomColor = (text: string): string => {
 
 const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }) => {
   return (
-    <div className="bg-white rounded p-6">
+    <div className="bg-white w-[500px] rounded p-6">
       <PageHeader title="Recent Activities" />
-      <Timeline>
+      <Timeline className="max-h-80 overflow-y-auto hide-scrollbar mt-5">
         {activities.map((activity) => (
           <TimelineItem key={activity.id}>
             <TimelineHeader

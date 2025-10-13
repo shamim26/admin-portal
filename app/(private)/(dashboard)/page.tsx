@@ -48,18 +48,16 @@ export default function DashboardPage() {
         </div>
         <TopCustomers />
       </div>
-      <div className="mt-3">
+      <div className="flex gap-5 mt-3">
         <LowStock />
-      </div>
-      <div className="mt-5">
-        <OrderChart />
-      </div>
-      <div className="mt-5">
         <RecentOrders />
       </div>
-      <div className="mt-5">
+      <div className="flex gap-5 mt-5">
         <ActivityTimeline activities={DUMMY_ACTIVITIES} />
+        <OrderChart />
       </div>
+      <div className="mt-5"></div>
+      <div className="mt-5"></div>
     </div>
   );
 }

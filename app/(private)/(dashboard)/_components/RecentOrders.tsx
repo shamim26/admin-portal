@@ -13,7 +13,7 @@ import { Eye } from "lucide-react";
 
 export default function RecentOrders() {
   return (
-    <Card className="rounded border-none shadow-none p-5 ">
+    <Card className="rounded w-full border-none shadow-none p-5 ">
       <PageHeader title="Recent Orders" />
       <Table>
         <TableHeader>

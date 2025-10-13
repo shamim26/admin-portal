@@ -15,7 +15,7 @@ const TimelineItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("group relative pb-8 pl-8 sm:pl-44", className)}
+    className={cn("group relative pb-8 pl-8 sm:pl-18", className)}
     {...props}
   />
 ));
@@ -28,7 +28,7 @@ const TimelineHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "mb-1 flex flex-col items-start before:absolute before:left-2 before:h-full before:-translate-x-1/2 before:translate-y-3 before:self-start before:bg-slate-300 before:px-px after:absolute after:left-2 after:box-content after:h-2 after:w-2 after:-translate-x-1/2 after:translate-y-1.5 after:rounded-full after:border-4 after:border-primary-foreground/95 after:bg-foreground group-last:before:hidden sm:flex-row sm:before:left-0 sm:before:ml-[10rem] sm:after:left-0 sm:after:ml-[10rem]",
+      "mb-1 flex flex-col items-start before:absolute before:left-2 before:h-full before:-translate-x-1/2 before:translate-y-3 before:self-start before:bg-slate-300 before:px-px after:absolute after:left-2 after:box-content after:h-2 after:w-2 after:-translate-x-1/2 after:translate-y-1.5 after:rounded-full after:border-4 after:border-primary-foreground/95 after:bg-foreground group-last:before:hidden sm:flex-row sm:before:left-0 sm:before:ml-9 sm:after:left-0 sm:after:ml-9",
       "after:bg-[var(--dot-color,theme(colors.foreground))]",
       className
     )}
