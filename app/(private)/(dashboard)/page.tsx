@@ -56,8 +56,6 @@ export default function DashboardPage() {
         <ActivityTimeline activities={DUMMY_ACTIVITIES} />
         <OrderChart />
       </div>
-      <div className="mt-5"></div>
-      <div className="mt-5"></div>
     </div>
   );
 }

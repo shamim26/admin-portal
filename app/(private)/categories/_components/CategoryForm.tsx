@@ -14,6 +14,7 @@ import {
 
 const categorySchema = z.object({
   name: z.string().min(1),
+  parent: z.string().optional(),
 });
 
 export default function CategoryForm({
@@ -27,6 +28,7 @@ export default function CategoryForm({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
+      parent: "",
     },
   });
 
@@ -50,6 +52,17 @@ export default function CategoryForm({
                 <CustomInput
                   field={field}
                   placeholder="Enter category name"
+                  type="text"
+                />
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="parent"
+              render={({ field }) => (
+                <CustomInput
+                  field={field}
+                  placeholder="Enter parent category ID"
                   type="text"
                 />
               )}
