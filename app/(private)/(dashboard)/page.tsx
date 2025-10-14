@@ -32,7 +32,7 @@ export default function DashboardPage() {
         <KpiCard
           title="Total Orders"
           value={200}
-          percentage={0}
+          percentage={-1}
           icon={<Container />}
         />
         <KpiCard

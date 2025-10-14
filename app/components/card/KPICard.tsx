@@ -7,10 +7,10 @@ type KpiCardProps = {
   title?: string;
   value?: number | string;
   icon?: React.ReactNode;
-  percentage?: number | null; 
+  percentage?: number | null;
   trend?: Trend; // explicitly set trend, otherwise inferred from percentage
   timeframe?: string; // e.g. "this month", "last 7 days"
-  className?: string; 
+  className?: string;
   sparklineData?: number[]; // optional tiny inline sparkline
   locale?: string; // for number formatting
   onClick?: () => void;
@@ -120,7 +120,7 @@ export default function KpiCard({
     <div
       role={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`bg-white rounded p-5 ${className} select-none`}
+      className={`bg-white rounded p-5 ${className} select-none w-full`}
       aria-label={`${title} — ${
         typeof value === "number"
           ? new Intl.NumberFormat(locale).format(value)
@@ -142,35 +142,39 @@ export default function KpiCard({
         {sparklineData ? <Sparkline data={sparklineData} /> : null}
       </div>
 
-      <div className="flex items-center gap-2 mt-3">
-        <span
-          className={`${trendColorClass} flex items-center gap-1`}
-          aria-hidden
-        >
-          {trendIcon}
-          {percentage != null ? (
-            <span className="text-sm font-medium">{Math.abs(percentage)}%</span>
-          ) : (
-            <span className="text-sm font-medium">—</span>
-          )}
-        </span>
+      {percentage && (
+        <div className="flex items-center gap-2 mt-3">
+          <span
+            className={`${trendColorClass} flex items-center gap-1`}
+            aria-hidden
+          >
+            {trendIcon}
+            {percentage != null ? (
+              <span className="text-sm font-medium">
+                {Math.abs(percentage)}%
+              </span>
+            ) : (
+              <span className="text-sm font-medium">—</span>
+            )}
+          </span>
 
-        <p className="text-gray-500 text-sm">
-          {percentage == null ? (
-            `${timeframe}`
-          ) : (
-            <>
-              <span className="sr-only">Change:</span>
-              {inferredTrend === "positive"
-                ? "increase"
-                : inferredTrend === "negative"
-                ? "decrease"
-                : "no change"}{" "}
-              from last period
-            </>
-          )}
-        </p>
-      </div>
+          <p className="text-gray-500 text-sm">
+            {percentage == null ? (
+              `${timeframe}`
+            ) : (
+              <>
+                <span className="sr-only">Change:</span>
+                {inferredTrend === "positive"
+                  ? "increase"
+                  : inferredTrend === "negative"
+                  ? "decrease"
+                  : "no change"}{" "}
+                from last period
+              </>
+            )}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
