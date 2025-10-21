@@ -8,12 +8,16 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Eye, Pencil, Trash } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function ProductTable() {
+  const router = useRouter()
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Image</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Price</TableHead>
@@ -25,13 +29,16 @@ export default function ProductTable() {
       <TableBody>
         {Array.from({ length: 10 }).map((_, index) => (
           <TableRow key={index}>
+            <TableCell>
+              <Image src="" alt="Product Image" width={10} height={10} />
+            </TableCell>
             <TableCell>Product {index + 1}</TableCell>
             <TableCell>Description {index + 1}</TableCell>
             <TableCell>${Math.floor(Math.random() * 1000)}</TableCell>
             <TableCell>Electronics</TableCell>
-            <TableCell>{Math.floor(Math.random() *124)}</TableCell>
+            <TableCell>{Math.floor(Math.random() * 124)}</TableCell>
             <TableCell>
-              <ActionButton>
+              <ActionButton onClick={()=>{}}>
                 <Eye />
               </ActionButton>
               <ActionButton>

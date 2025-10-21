@@ -8,6 +8,7 @@ type ProductStore = {
   currentPage: number;
   updatePage: (page: number) => void;
   fetchAllProducts: (options?: GetProductDto) => Promise<Product[]>;
+  addProduct: (product: Product) => void;
 };
 
 const useProductStore = create<ProductStore>((set) => ({
@@ -23,6 +24,12 @@ const useProductStore = create<ProductStore>((set) => ({
       currentPage: response.data.payload.currentPage,
     });
     return response.data.payload;
+  },
+  addProduct: (product: Product) => {
+    
+    set((state) => ({
+      products: [...state.products, product],
+    }));
   },
 }));
 

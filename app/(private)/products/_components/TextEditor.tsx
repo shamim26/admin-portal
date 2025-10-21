@@ -14,7 +14,7 @@ export const TextEditor = ({
 }) => {
   const modules = {
     toolbar: [
-      [{ header: [1, 2, false] }],
+      [{ header: [1, 2, 3, 4, 5,false] }],
       ["bold", "italic", "underline", "strike", "blockquote"],
       [
         { list: "ordered" },
@@ -22,7 +22,7 @@ export const TextEditor = ({
         { indent: "-1" },
         { indent: "+1" },
       ],
-      ["link", "image"],
+      ["link", "code-block"],
       ["clean"],
     ],
     history: {
@@ -47,7 +47,6 @@ export const TextEditor = ({
     "list",
     "indent",
     "link",
-    "image",
     "color",
     "code-block",
   ];
@@ -64,7 +63,7 @@ export const TextEditor = ({
           placeholder={"Write something..."}
           modules={modules}
           formats={formats}
-          className="dark:bg-dark dark:text-white h-fit"
+          className="dark:bg-dark dark:text-white"
         />
       </div>
     </div>
