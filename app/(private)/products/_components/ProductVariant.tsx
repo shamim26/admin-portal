@@ -119,7 +119,7 @@ export default function ProductVariant() {
                 onChange={(e) =>
                   handleOptionGroupNameChange(index, e.target.value)
                 }
-                placeholder="e.g., Color"
+                placeholder="e.g., Color, Storage, Ram, Size"
               />
               <FormItem>
                 <FormLabel>Option Values</FormLabel>
@@ -128,7 +128,7 @@ export default function ProductVariant() {
                     handleOptionGroupValuesUpdate(index, values)
                   }
                   value={group.values}
-                  placeholder="e.g., Red, Blue, Green"
+                  placeholder="e.g., Red, 256gb, 8gb, Large"
                 />
                 <p className="text-xs text-gray-500">
                   Separate different values with a comma (,)
