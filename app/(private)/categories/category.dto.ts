@@ -1,11 +1,11 @@
 export type GetCategoryDTO = {
-  id: number;
+  id: string;
   name: string;
   parent?: string | null;
 };
 
 export type CategoryDTO = {
-  id: number;
+  id: string;
   name: string;
   parent?: string | null;
   createdAt: Date;

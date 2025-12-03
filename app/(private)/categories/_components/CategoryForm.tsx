@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useCategoryStore } from "@/stores/category.store";
 
 const categorySchema = z.object({
   name: z.string().min(1),
@@ -32,9 +33,12 @@ export default function CategoryForm({
     },
   });
 
-  const onSubmit = (data: z.infer<typeof categorySchema>) => {
-    console.log(data);
+  const { createCategory } = useCategoryStore();
+
+  const onSubmit = async (data: z.infer<typeof categorySchema>) => {
+    await createCategory(data.name, data.parent);
     onClose();
+    form.reset();
   };
 
   return (

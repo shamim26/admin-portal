@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -24,17 +23,12 @@ import {
 } from "@/components/ui/table";
 import { SortableItem } from "./SortableItems";
 
+import { useCategoryStore } from "@/stores/category.store";
 
-// Initial data 
-const initialCategories = Array.from({ length: 10 }, (_, index) => ({
-  id: index + 1,
-  name: `Category ${index + 1}`,
-  parent: `Parent ${index + 1}`,
-}));
+// Initial data removed in favor of store
 
 export default function CategoryTable() {
-  // Store categories in state so we can reorder them
-  const [categories, setCategories] = useState(initialCategories);
+  const { categories, reorderCategories } = useCategoryStore();
 
   // Define sensors to detect drag operations (e.g., pointer/mouse)
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
@@ -44,14 +38,12 @@ export default function CategoryTable() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setCategories((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        const reorderedCategories = arrayMove(items, oldIndex, newIndex);
+      const oldIndex = categories.findIndex((item) => item.id === active.id);
+      const newIndex = categories.findIndex((item) => item.id === over.id);
+      const reorderedCategories = arrayMove(categories, oldIndex, newIndex);
 
-        return reorderedCategories;
-        //TODO: API call here to persist the new order
-      });
+      // Update store and persist
+      reorderCategories(reorderedCategories);
     }
   }
 

@@ -1,22 +1,25 @@
-import { buildCategoryTree } from "@/utils/category-tree"; // Adjust import path
+import { buildCategoryTree } from "@/utils/category-tree";
+import { useCategoryStore } from "@/stores/category.store";
 import { TreeNode } from "./TreeNode";
-import { CategoryDTO } from "../category.dto";
 
-interface TreeViewProps {
-  categories: CategoryDTO[];
-}
+export default function TreeView() {
+  const { categories } = useCategoryStore();
+  const categoryTree = buildCategoryTree(categories);
 
-export default function TreeView({ categories }: TreeViewProps) {
-  // 1. Transform the flat data into a nested tree structure
-  
+  if (categories.length === 0) {
+    return (
+      <div className="text-center p-4 text-gray-500">No categories found</div>
+    );
+  }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-2">Category Structure</h2>
-      {/* 2. Map over the root nodes to start the recursive rendering
-      {categoryTree.map((rootNode) => (
-        <TreeNode key={rootNode.id} node={rootNode} />
-      ))} */}
+    <div className="p-4 bg-white rounded-lg shadow-sm border">
+      <h2 className="text-lg font-semibold mb-4">Category Structure</h2>
+      <div className="flex flex-col gap-1">
+        {categoryTree.map((rootNode) => (
+          <TreeNode key={rootNode.id} node={rootNode} />
+        ))}
+      </div>
     </div>
   );
 }
