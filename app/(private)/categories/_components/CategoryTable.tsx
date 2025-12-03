@@ -69,9 +69,17 @@ export default function CategoryTable() {
             items={categories}
             strategy={verticalListSortingStrategy}
           >
-            {categories.map((category) => (
-              <SortableItem key={category.id} category={category} />
-            ))}
+            {categories.length > 0 ? (
+              categories.map((category) => (
+                <SortableItem key={category.id} category={category} />
+              ))
+            ) : (
+              <TableRow>
+                <TableHead colSpan={5} className="h-24 text-center">
+                  No categories found.
+                </TableHead>
+              </TableRow>
+            )}
           </SortableContext>
         </TableBody>
       </Table>

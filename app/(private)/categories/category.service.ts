@@ -1,8 +1,10 @@
 import apiClient from "@/services/apiClient";
 
+import { GetCategoriesParams } from "./category.dto";
+
 export class CategoryService {
-  static async getCategories() {
-    const response = await apiClient.get("/categories");
+  static async getCategories(params?: GetCategoriesParams) {
+    const response = await apiClient.get("/categories", { params });
     return response.data;
   }
 

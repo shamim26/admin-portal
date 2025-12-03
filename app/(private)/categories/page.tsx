@@ -12,10 +12,17 @@ import { useCategoryStore } from "@/stores/category.store";
 import { useEffect } from "react";
 
 export default function CategoryPage() {
-  const [searchValue, setSearchValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [treeView, setTreeView] = useState(false);
-  const { fetchCategories } = useCategoryStore();
+
+  const {
+    fetchCategories,
+    search,
+    setSearch,
+    currentPage,
+    totalPages,
+    setPage,
+  } = useCategoryStore();
 
   useEffect(() => {
     fetchCategories();
@@ -37,8 +44,8 @@ export default function CategoryPage() {
           </div>
           <SearchField
             placeholder="Search"
-            searchValue={searchValue}
-            setSearchValue={setSearchValue}
+            searchValue={search}
+            setSearchValue={setSearch}
           />
         </div>
       </div>
@@ -50,9 +57,9 @@ export default function CategoryPage() {
 
       {!treeView && (
         <DynamicPagination
-          currentPage={1}
-          totalPages={10}
-          onPageChange={() => {}}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       )}
       <CategoryForm
