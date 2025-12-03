@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { EditIcon } from "lucide-react";
 import React from "react";
+import ProductGallery from "../_components/ProductGallery";
 
 export default function ProductDetailPage() {
   // --- Product Data ---
@@ -23,63 +24,21 @@ export default function ProductDetailPage() {
       "https://images.pexels.com/photos/442587/pexels-photo-442587.jpeg",
       "https://images.pexels.com/photos/724921/pexels-photo-724921.jpeg",
       "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
+      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
+      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
+      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
+      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
+      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
     ],
     imagePlaceholder:
       "https://placehold.co/800x800/171717/ffffff?text=Aura+Drone+X4",
-  };
-
-  const [selectedImage, setSelectedImage] = React.useState(product.images[0]);
-
-  // --- Image Zoom Logic ---
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    e.currentTarget.style.transformOrigin = `${x}% ${y}%`;
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLImageElement>) => {
-    e.currentTarget.style.transformOrigin = `center center`;
   };
 
   return (
     <div className="bg-white min-h-screen flex items-center justify-center font-sans p-4">
       <div className="w-full mx-auto">
         <div className="flex items-start gap-10 mx-auto md:flex-row flex-col">
-          {/* Left Column: Product Image Gallery */}
-          <div className="flex w-7/12 flex-col gap-4 h-[600px]">
-            <div className="overflow-hidden rounded group">
-              <img
-                src={selectedImage}
-                alt={product.name}
-                className="w-full h-full object-cover rounded transform transition-transform duration-500 ease-in-out group-hover:scale-[2.5] cursor-zoom-in"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              />
-            </div>
-            {/* Image Gallery Thumbnails */}
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(image)}
-                  className={`rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImage === image
-                      ? "border-blue-500"
-                      : "border-transparent hover:border-gray-600"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} thumbnail ${index + 1}`}
-                    className="w-full h-24 object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-
+          <ProductGallery product={product} />
           {/* Right Column: Product Details */}
           <div className="w-[700px] flex flex-col gap-6">
             <Badge className="bg-blue-600 text-white border-blue-600 w-fit">

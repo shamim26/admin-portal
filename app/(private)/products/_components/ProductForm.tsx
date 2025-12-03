@@ -233,7 +233,7 @@ export default function ProductForm() {
             </div>
 
             {/* --- Variants Card (Now using the sub-component) --- */}
-            <div className="bg-white p-6 rounded-md shadow space-y-6">
+            <div className="bg-white p-6 rounded shadow space-y-6">
               <h3 className="text-lg font-semibold">Variants</h3>
 
               <p className="inline float-start font-medium text-gray-500 text-sm">
