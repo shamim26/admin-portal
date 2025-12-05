@@ -1,5 +1,6 @@
 "use client";
 import ProductTable from "./_components/ProductTable";
+import { GetProductDto } from "./product.dto";
 import PageHeader from "@/app/components/PageHeader";
 import SearchField from "@/app/components/input-fields/SearchField";
 import { useEffect, useState } from "react";
@@ -12,12 +13,20 @@ import ProductFilter from "./_components/ProductFilter";
 export default function ProductsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<GetProductDto>({});
 
-  const { fetchAllProducts } = useProductStore();
+  const { fetchAllProducts, currentPage, totalPages } = useProductStore();
 
   useEffect(() => {
-    fetchAllProducts();
-  }, [fetchAllProducts]);
+    const timeoutId = setTimeout(() => {
+      fetchAllProducts({ ...filters, search: searchValue, page: 1 });
+    }, 500); // Debounce search
+    return () => clearTimeout(timeoutId);
+  }, [fetchAllProducts, filters, searchValue]);
+
+  const handlePageChange = (page: number) => {
+    fetchAllProducts({ ...filters, search: searchValue, page });
+  };
 
   return (
     <div>
@@ -39,13 +48,15 @@ export default function ProductsPage() {
       <ProductFilter
         isFilterOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
+        filters={filters}
+        onFilterChange={setFilters}
       />
 
       <ProductTable />
       <DynamicPagination
-        currentPage={1}
-        totalPages={10}
-        onPageChange={() => {}}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
       />
     </div>
   );

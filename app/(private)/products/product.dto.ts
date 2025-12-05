@@ -19,4 +19,12 @@ export interface GetProductDto {
   page?: number;
   limit?: number;
   search?: string;
+  category?: string;
+  brand?: string;
+  stockStatus?: string;
+  sort?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  color?: string;
+  size?: string;
 }
