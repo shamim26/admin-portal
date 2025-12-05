@@ -9,20 +9,19 @@ import useProductStore from "@/stores/product.store";
 import KpiCard from "@/app/components/card/KPICard";
 import { Package2, PackageMinusIcon, PackageX } from "lucide-react";
 import ProductFilter from "./_components/ProductFilter";
+import useDebounce from "@/hooks/useDebounce";
 
 export default function ProductsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<GetProductDto>({});
 
+  const debouncedSearchValue = useDebounce(searchValue);
   const { fetchAllProducts, currentPage, totalPages } = useProductStore();
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchAllProducts({ ...filters, search: searchValue, page: 1 });
-    }, 500); // Debounce search
-    return () => clearTimeout(timeoutId);
-  }, [fetchAllProducts, filters, searchValue]);
+    fetchAllProducts({ ...filters, search: debouncedSearchValue, page: 1 });
+  }, [fetchAllProducts, filters, debouncedSearchValue]);
 
   const handlePageChange = (page: number) => {
     fetchAllProducts({ ...filters, search: searchValue, page });

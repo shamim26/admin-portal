@@ -5,6 +5,7 @@ export class ROUTES {
   static readonly CATEGORIES = "/categories";
   static readonly PRODUCTS = "/products";
   static readonly PRODUCTS_ADD = `${this.PRODUCTS}/add`;
+  static readonly PRODUCTS_EDIT = `${this.PRODUCTS}/edit`;
   static readonly ORDERS = "/orders";
   static readonly CUSTOMERS = "/customers";
   static readonly SETTINGS = "/settings";

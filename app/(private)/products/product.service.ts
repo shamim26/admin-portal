@@ -7,7 +7,7 @@ export class ProductService {
     return response;
   }
 
-  static async getProductById(id: number) {
+  static async getProductById(id: string) {
     const response = await apiClient.get(`/products/${id}`);
     return response;
   }
@@ -17,12 +17,12 @@ export class ProductService {
     return response;
   }
 
-  static async updateProduct(id: number, productData: Partial<Product>) {
+  static async updateProduct(id: string, productData: Partial<Product>) {
     const response = await apiClient.put(`/products/${id}`, productData);
     return response;
   }
 
-  static async deleteProduct(id: number) {
+  static async deleteProduct(id: string) {
     const response = await apiClient.delete(`/products/${id}`);
     return response;
   }
