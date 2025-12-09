@@ -12,11 +12,6 @@ export class OrderService {
     return response.data;
   }
 
-  static async createOrder(orderData: Partial<Order>) {
-    const response = await apiClient.post("/orders", orderData);
-    return response.data;
-  }
-
   static async updateOrder(id: string, orderData: Partial<Order>) {
     const response = await apiClient.put(`/orders/${id}`, orderData);
     return response.data;
