@@ -1,22 +1,33 @@
 export type Order = {
-  id: number;
-  customerId: number;
-  customerName: string;
+  _id: string; // Changed from id: number
+  orderNumber: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   items: OrderItem[];
-  totalAmount: number;
+  totals: {
+    subtotal: number;
+    shipping: number;
+    discount: number;
+    grandTotal: number;
+  };
   status: OrderStatus;
-  shippingAddress: Address;
+  shippingAddress: string; // Backend sends string currently, might need object if changed later, but model says string
+  phone: string;
   paymentMethod: string;
-  createdAt: Date;
-  updatedAt: Date;
+  transactionId?: string;
+  trackingNumber?: string;
+  createdAt: string; // Date comes as string from JSON
+  updatedAt: string;
 };
 
 export type OrderItem = {
-  productId: number;
-  productName: string;
+  product_id: string | { _id: string; name: string; images: string[] };
+  variant_sku: string;
   quantity: number;
-  price: number;
-  total: number;
+  priceAtPurchase: number;
 };
 
 export type Address = {
@@ -28,8 +39,9 @@ export type Address = {
 };
 
 export type OrderStatus =
-  | "pending"
-  | "processing"
-  | "shipped"
-  | "delivered"
-  | "cancelled";
+  | "Pending"
+  | "Processing"
+  | "Shipped"
+  | "Delivered"
+  | "Cancelled"
+  | "Refunded";

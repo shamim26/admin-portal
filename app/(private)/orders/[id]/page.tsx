@@ -1,17 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Order } from "@/app/(private)/orders/order.dto";
-import { OrderService } from "@/app/(private)/orders/order.service";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -35,55 +27,38 @@ import {
   Phone,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Spinner } from "@/components/ui/spinner"; // Assuming Spinner exists based on file list
+import { Spinner } from "@/components/ui/spinner";
+import useOrderStore from "@/stores/order.store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
 
-  const [loading, setLoading] = useState(false);
+  const { currentOrder, fetchOrderById, loading, updateOrderStatus, error } =
+    useOrderStore();
 
-  const order = {
-    id: "1",
-    items: [
-      {
-        id: "1",
-        productName: "Product 1",
-        price: 10,
-        total: 20,
-        quantity: 2,
-        image: "https://via.placeholder.com/150",
-        productId: "1",
-        orderId: "1",
-      },
-    ],
-    status: "pending",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-
-    customerId: "1",
-    customerName: "John Doe",
-    customerEmail: "john.doe@example.com",
-    customerPhone: "123-456-7890",
-    shippingAddress: {
-      street: "123 Main St",
-      city: "Anytown",
-      state: "CA",
-      zipCode: "12345",
-      country: "USA",
-    },
-
-    totalAmount: 100,
-    paymentMethod: "credit-card",
-    paymentStatus: "pending",
-    shippingMethod: "standard",
-    shippingStatus: "pending",
-    notes: "No additional notes",
-  };
+  useEffect(() => {
+    if (id) {
+      fetchOrderById(id);
+    }
+  }, [id, fetchOrderById]);
 
   const handlePrint = () => {
-    window.print();
+    // Navigate to print page
+    window.open(`/orders/print/${id}`, "_blank");
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    await updateOrderStatus(id, newStatus);
+    toast.success("Order status updated");
   };
 
   if (loading) {
@@ -94,7 +69,16 @@ export default function OrderDetailsPage() {
     );
   }
 
-  if (!order) {
+  if (error) {
+    return (
+      <div className="flex h-[50vh] w-full flex-col items-center justify-center gap-4">
+        <h2 className="text-xl font-semibold text-destructive">{error}</h2>
+        <Button onClick={() => fetchOrderById(id)}>Retry</Button>
+      </div>
+    );
+  }
+
+  if (!currentOrder) {
     return (
       <div className="flex h-[50vh] w-full flex-col items-center justify-center gap-4">
         <h2 className="text-xl font-semibold text-muted-foreground">
@@ -105,16 +89,18 @@ export default function OrderDetailsPage() {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
+    switch (
+      status // Case sensitive match with backend ENUM ideally, but safe to be loose or exact
+    ) {
+      case "Pending":
         return "bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25 border-yellow-200";
-      case "processing":
+      case "Processing":
         return "bg-blue-500/15 text-blue-700 hover:bg-blue-500/25 border-blue-200";
-      case "shipped":
+      case "Shipped":
         return "bg-purple-500/15 text-purple-700 hover:bg-purple-500/25 border-purple-200";
-      case "delivered":
+      case "Delivered":
         return "bg-green-500/15 text-green-700 hover:bg-green-500/25 border-green-200";
-      case "cancelled":
+      case "Cancelled":
         return "bg-red-500/15 text-red-700 hover:bg-red-500/25 border-red-200";
       default:
         return "bg-gray-500/15 text-gray-700 hover:bg-gray-500/25 border-gray-200";
@@ -147,11 +133,27 @@ export default function OrderDetailsPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Order Details</h1>
             <p className="text-sm text-muted-foreground">
-              View and manage order #{order.id}
+              View and manage order #{currentOrder.orderNumber}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={currentOrder.status}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Processing">Processing</SelectItem>
+              <SelectItem value="Shipped">Shipped</SelectItem>
+              <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+              <SelectItem value="Refunded">Refunded</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={handlePrint} variant="outline" className="gap-2">
             <Printer className="h-4 w-4" />
             Print Order
@@ -172,10 +174,10 @@ export default function OrderDetailsPage() {
                 </div>
                 <Badge
                   className={`${getStatusColor(
-                    order.status
+                    currentOrder.status,
                   )} border px-3 py-1 capitalize`}
                 >
-                  {order.status}
+                  {currentOrder.status}
                 </Badge>
               </div>
             </CardHeader>
@@ -190,31 +192,43 @@ export default function OrderDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {order.items.map((item, index) => (
-                    <TableRow key={index} className="hover:bg-muted/30">
-                      <TableCell className="pl-6 font-medium">
-                        <div className="flex flex-col">
-                          <span>{item.productName}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ID: {item.productId}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        ${item.price.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right pr-6 font-semibold">
-                        ${item.total.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {currentOrder.items.map((item, index) => {
+                    const product =
+                      typeof item.product_id === "object"
+                        ? item.product_id
+                        : null;
+                    const productName = product?.name || "Product Name N/A";
+                    const productId =
+                      product?._id ||
+                      (typeof item.product_id === "string"
+                        ? item.product_id
+                        : "N/A");
+                    const total = item.quantity * item.priceAtPurchase;
+
+                    return (
+                      <TableRow key={index} className="hover:bg-muted/30">
+                        <TableCell className="pl-6 font-medium">
+                          <div className="flex flex-col">
+                            <span>{productName}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ID: {productId}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${item.priceAtPurchase.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right pr-6 font-semibold">
+                          ${total.toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
-
-              {/* Mobile View for Items (Optional, but Table handles it reasonably well usually) */}
             </CardContent>
           </Card>
 
@@ -230,21 +244,21 @@ export default function OrderDetailsPage() {
               <div className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>${order.totalAmount.toFixed(2)}</span>
+                  <span>${currentOrder.totals?.subtotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>$0.00</span>
+                  <span>${currentOrder.totals?.shipping?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span>$0.00</span>
+                  <span className="text-muted-foreground">Discount</span>
+                  <span>-${currentOrder.totals?.discount?.toFixed(2)}</span>
                 </div>
                 <div className="my-4 h-px bg-border" />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span className="text-primary">
-                    ${order.totalAmount.toFixed(2)}
+                    ${currentOrder.totals?.grandTotal?.toFixed(2)}
                   </span>
                 </div>
                 <div className="mt-4 rounded-lg bg-muted/50 p-4 text-sm">
@@ -253,9 +267,19 @@ export default function OrderDetailsPage() {
                       Payment Method
                     </span>
                     <span className="font-semibold capitalize">
-                      {order.paymentMethod}
+                      {currentOrder.paymentMethod}
                     </span>
                   </div>
+                  {currentOrder.transactionId && (
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-medium text-muted-foreground">
+                        Transaction ID
+                      </span>
+                      <span className="font-mono">
+                        {currentOrder.transactionId}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -278,9 +302,8 @@ export default function OrderDetailsPage() {
                   <User className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="font-medium">{order.customerName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Customer ID: {order.customerId}
+                  <p className="font-medium">
+                    {currentOrder.user?.name || "N/A"}
                   </p>
                 </div>
               </div>
@@ -291,7 +314,7 @@ export default function OrderDetailsPage() {
                 <div>
                   <p className="text-sm font-medium">Email</p>
                   <p className="text-sm text-muted-foreground">
-                    customer@example.com
+                    {currentOrder.user?.email || "N/A"}
                   </p>
                 </div>
               </div>
@@ -302,7 +325,7 @@ export default function OrderDetailsPage() {
                 <div>
                   <p className="text-sm font-medium">Phone</p>
                   <p className="text-sm text-muted-foreground">
-                    +1 (555) 000-0000
+                    {currentOrder.phone}
                   </p>
                 </div>
               </div>
@@ -323,15 +346,8 @@ export default function OrderDetailsPage() {
                   <Truck className="h-4 w-4" />
                 </div>
                 <div className="text-sm text-muted-foreground leading-relaxed">
-                  <p className="font-medium text-foreground">
-                    {order.customerName}
-                  </p>
-                  <p>{order.shippingAddress.street}</p>
-                  <p>
-                    {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                    {order.shippingAddress.zipCode}
-                  </p>
-                  <p>{order.shippingAddress.country}</p>
+                  {/* Address might be string or object depending on implementation detail. DTO says string. */}
+                  <p>{currentOrder.shippingAddress}</p>
                 </div>
               </div>
             </CardContent>
@@ -349,13 +365,13 @@ export default function OrderDetailsPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Placed on</span>
                 <span className="font-medium">
-                  {formatDate(order.createdAt)}
+                  {formatDate(currentOrder.createdAt)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Last Updated</span>
                 <span className="font-medium">
-                  {formatDate(order.updatedAt)}
+                  {formatDate(currentOrder.updatedAt)}
                 </span>
               </div>
             </CardContent>

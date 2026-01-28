@@ -2,8 +2,8 @@ import apiClient from "@/services/apiClient";
 import { Order } from "./order.dto";
 
 export class OrderService {
-  static async getOrders() {
-    const response = await apiClient.get("/orders");
+  static async getOrders(params?: Record<string, any>) {
+    const response = await apiClient.get("/orders", { params });
     return response.data;
   }
 
@@ -24,6 +24,14 @@ export class OrderService {
 
   static async updateOrderStatus(id: string, status: string) {
     const response = await apiClient.patch(`/orders/${id}/status`, { status });
+    return response.data;
+  }
+
+  static async updateOrdersStatusBulk(orderIds: string[], status: string) {
+    const response = await apiClient.post("/orders/bulk/status", {
+      orderIds,
+      status,
+    });
     return response.data;
   }
 }

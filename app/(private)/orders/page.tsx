@@ -3,73 +3,122 @@
 import OrderTable from "./_components/OrderTable";
 import PageHeader from "@/app/components/PageHeader";
 import SearchField from "@/app/components/input-fields/SearchField";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DynamicPagination from "@/app/components/DynamicPagination";
 import KpiCard from "@/app/components/card/KPICard";
-import { CheckCircleIcon, ClockIcon, ShoppingCartIcon, XCircleIcon } from "lucide-react";
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  ShoppingCartIcon,
+  XCircleIcon,
+} from "lucide-react";
+import useOrderStore from "@/stores/order.store";
+import useDebounce from "@/hooks/useDebounce";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import ExportOrdersButton from "./_components/ExportOrdersButton";
 
 export default function OrdersPage() {
+  const {
+    orders,
+    loading,
+    fetchOrders,
+    initSocket,
+    disconnectSocket,
+    totalPages,
+    currentPage,
+    setPage,
+    setFilters,
+    filters,
+  } = useOrderStore();
   const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 500);
+
+  // Initial fetch and socket setup
+  useEffect(() => {
+    fetchOrders();
+    initSocket();
+
+    // Polling fallback or just rely on socket
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 30000);
+
+    return () => {
+      clearInterval(interval);
+      disconnectSocket();
+    };
+  }, [fetchOrders, initSocket, disconnectSocket]);
+
+  useEffect(() => {
+    setFilters({ search: debouncedSearch });
+  }, [debouncedSearch, setFilters]);
+
+  // TODO: Fetch real stats from API if available, currently static or calculated from current page (inaccurate)
+  // For now, we can render static or leave placeholders until a stats endpoint exists.
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <PageHeader title="Orders" />
-        <SearchField
-          placeholder="Search orders"
-          searchValue={searchValue}
-          setSearchValue={setSearchValue}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Added ExportOrdersButton here */}
+          <ExportOrdersButton />
+          <Select
+            value={filters.status || "all"}
+            onValueChange={(val) =>
+              setFilters({ status: val === "all" ? undefined : val })
+            }
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Processing">Processing</SelectItem>
+              <SelectItem value="Shipped">Shipped</SelectItem>
+              <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+              <SelectItem value="Refunded">Refunded</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <SearchField
+            placeholder="Search orders..."
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+        <KpiCard
+          title="Total Orders"
+          icon={<ShoppingCartIcon />}
+          value={orders.length} // Just current page count for now, ideally totalOrders from store
+          // value={totalOrders} // Store has totalOrders
+        />
+        {/* These need backend stats endpoint to be accurate */}
+        <KpiCard title="Pending" icon={<ClockIcon />} value={"-"} />
+        <KpiCard title="Shipped" icon={<CheckCircleIcon />} value={"-"} />
+        <KpiCard title="Cancelled" icon={<XCircleIcon />} value={"-"} />
+      </div>
+
+      <OrderTable orders={orders} loading={loading} />
+
+      <div className="mt-4">
+        <DynamicPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
-        <KpiCard title="Total Orders" icon={<ShoppingCartIcon />} value={100} />
-        <KpiCard title="Pending" icon={<ClockIcon />} value={50} />
-        <KpiCard title="Shipped" icon={<CheckCircleIcon />} value={30} />
-        <KpiCard title="Cancelled" icon={<XCircleIcon />} value={20} />
-      </div>
-      <OrderTable orders={sampleOrders}/>
-      <DynamicPagination
-        currentPage={1}
-        totalPages={10}
-        onPageChange={() => {}}
-      />
     </div>
   );
 }
-
-
-const sampleOrders = [
-  {
-    _id: "1",
-    orderNumber: "ORD001",
-    user: {
-      name: "John Doe",
-    },
-    grandTotal: 100,
-    status: "Pending",
-    paymentMethod: "Credit Card",
-    createdAt: "2023-01-01T00:00:00Z",
-  },
-  {
-    _id: "2",
-    orderNumber: "ORD002",
-    user: {
-      name: "Jane Smith",
-    },
-    grandTotal: 200,
-    status: "Shipped",
-    paymentMethod: "PayPal",
-    createdAt: "2023-01-02T00:00:00Z",
-  },
-  {
-    _id: "3",
-    orderNumber: "ORD003",
-    user: {
-      name: "Alice Johnson",
-    },
-    grandTotal: 150,
-    status: "Delivered",
-    paymentMethod: "Bank Transfer",
-    createdAt: "2023-01-03T00:00:00Z",
-  },
-];
