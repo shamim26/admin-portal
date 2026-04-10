@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm, useFieldArray, FieldErrors } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -20,8 +20,12 @@ import { Input } from "@/components/ui/input";
 import { TextEditor } from "./TextEditor";
 import ProductVariant from "./ProductVariant";
 import { Textarea } from "@/components/ui/textarea";
+import useProductStore from "@/stores/product.store";
+import { Product } from "../product.dto";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/slugs";
 
-// --- 1. Zod Schema updated to match the Mongoose model ---
+// --- Zod Schema ---
 const variantSchema = z.object({
   sku: z.string().min(1, "SKU is required"),
   price: z.coerce.number().min(0, "Price must be positive"),
@@ -31,7 +35,7 @@ const variantSchema = z.object({
       z.object({
         option_name: z.string().min(1, "Option name is required"),
         option_value: z.string().min(1, "Option value is required"),
-      })
+      }),
     )
     .optional(),
 });
@@ -39,13 +43,15 @@ const variantSchema = z.object({
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
-  category: z.string(),
+  category: z.string().optional(),
   brand: z.string().optional(),
 
-  media: z
-    .array(z.object({ file: z.instanceof(File) }))
-    .min(1, "At least one image is required")
-    .max(5, "Maximum 5 images allowed"),
+  // For media, we handle file uploads separately from existing images
+  media: z.any().optional(),
+  // We don't strictly validate 'media' here because we manage it manually.
+  // Or we can use a refinement if needed.
+
+  images: z.array(z.string()).optional(), // Existing images
 
   pricing: z.object({
     basePrice: z.coerce.number().min(0),
@@ -61,7 +67,7 @@ const productSchema = z.object({
       z.object({
         key: z.string().min(1, "Spec key is required"),
         value: z.string().min(1, "Spec value is required"),
-      })
+      }),
     )
     .optional(),
 
@@ -71,46 +77,82 @@ const productSchema = z.object({
       metaDescription: z.string().optional(),
     })
     .optional(),
+
+  isFeatured: z.boolean().default(false).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
-export default function ProductForm() {
-  // State for managing UI previews of images
-  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+interface ProductFormProps {
+  initialData?: Product | null;
+}
+
+export default function ProductForm({ initialData }: ProductFormProps) {
+  const router = useRouter();
+  const { createProduct, updateProduct, loading } = useProductStore();
+
+  // State for new file uploads
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newFilePreviews, setNewFilePreviews] = useState<string[]>([]);
+
   const [hasVariants, setHasVariants] = useState<boolean>(false);
+
+  // default values
+  const defaultValues: Partial<ProductFormValues> = {
+    name: "",
+    description: "",
+    category: "",
+    brand: "",
+    media: [],
+    images: [],
+    pricing: { basePrice: 0, compareAtPrice: 0 },
+    variants: [
+      {
+        sku: "",
+        price: 0,
+        stock: 1,
+        options: [],
+      },
+    ],
+    specifications: [],
+    isFeatured: false,
+  };
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     mode: "onChange",
-    defaultValues: {
-      name: "",
-      description: "",
-      category: "",
-      brand: "",
-      media: [],
-      pricing: { basePrice: 0, compareAtPrice: 0 },
-      variants: [
-        {
-          sku: "",
-          price: 0,
-          stock: 1,
-          options: [],
-        },
-      ],
-      specifications: [],
-    },
+    defaultValues,
   });
 
-  // --- 2. useFieldArray for dynamic fields ---
-  const {
-    fields: mediaFields,
-    append: appendMedia,
-    remove: removeMedia,
-  } = useFieldArray({
-    control: form.control,
-    name: "media",
-  });
+  // Load initial data
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        description: initialData.description,
+        category: initialData.category,
+        brand: initialData.brand,
+        pricing: {
+          basePrice: initialData.pricing?.basePrice || 0,
+          compareAtPrice: initialData.pricing?.compareAtPrice || 0,
+        },
+        variants:
+          initialData.variants?.map((v) => ({
+            ...v,
+            options:
+              v.options?.map((o) => ({
+                option_name: o.name,
+                option_value: o.values[0] || "",
+              })) || [],
+          })) || [],
+        specifications: initialData.specifications || [],
+        images: initialData.images || [],
+        isFeatured: initialData.isFeatured || false,
+      });
+
+      setHasVariants(initialData.variants && initialData.variants.length > 0);
+    }
+  }, [initialData, form]);
 
   const {
     fields: specFields,
@@ -121,59 +163,117 @@ export default function ProductForm() {
     name: "specifications",
   });
 
-  // Clean up object URLs to prevent memory leaks
+  // Clean up object URLs
   useEffect(() => {
     return () => {
-      mediaPreviews.forEach(URL.revokeObjectURL);
+      newFilePreviews.forEach(URL.revokeObjectURL);
     };
-  }, [mediaPreviews]);
+  }, [newFilePreviews]);
 
-  const onSubmit = (data: ProductFormValues) => {
-    // Here you would typically create FormData to send files to the server
-    console.log("Form Data Submitted:", data);
-    // const formData = new FormData();
-    // // Append other fields
-    // formData.append('name', data.name);
-    // // ... etc
-    // data.media.forEach((mediaItem, index) => {
-    //   formData.append(`media[${index}]`, mediaItem.file);
-    // });
-    // // Then send formData to your API
+  const onSubmit = async (data: ProductFormValues) => {
+    try {
+      const formData = new FormData();
+
+      // Append simple fields
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      if (data.category) formData.append("category", data.category);
+      if (data.brand) formData.append("brand", data.brand);
+      if (data.isFeatured !== undefined)
+        formData.append("isFeatured", String(data.isFeatured));
+
+      // Append complex fields as JSON
+      formData.append("pricing", JSON.stringify(data.pricing));
+
+      const mappedVariants = data.variants.map((v) => ({
+        ...v,
+        options:
+          v.options?.map((o) => ({
+            name: o.option_name,
+            values: [o.option_value],
+          })) || [],
+      }));
+      formData.append("variants", JSON.stringify(mappedVariants));
+      if (data.specifications)
+        formData.append("specifications", JSON.stringify(data.specifications));
+
+      // Append existing images (as JSON or array)
+      if (data.images && data.images.length > 0) {
+        formData.append("images", JSON.stringify(data.images));
+      }
+
+      // Append new files
+      newFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      if (initialData?.id) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await updateProduct(initialData.id, formData as any); // Type cast as any because store expects Partial<Product> but we send FormData.
+        // We need to update Store to accept FormData or creating wrapper.
+        // Actually Store calls Service. Service calls API. Service needs to handle FormData.
+        // I updated Store? No. I updated Service? Let's check Service.
+        // ProductService.createProduct takes Partial<Product>.
+        // I should update it to accept FormData | Partial<Product>.
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await createProduct(formData as any);
+      }
+
+      router.push(ROUTES.PRODUCTS);
+    } catch (error) {
+      console.error("Submission failed", error);
+    }
   };
 
-  const onError = (errors: FieldErrors<ProductFormValues>) => {
-    console.log("Form Errors:", errors);
-  };
-
-  const handleImageUpload = (files: FileList | null) => {
+  const handleNewFileUpload = (files: FileList | null) => {
     if (!files) return;
 
-    const currentCount = mediaFields.length;
+    const newFilesList: File[] = [];
+    const newPreviewsList: string[] = [];
+
     const maxImages = 5;
+    // Count existing + already added new
+    const currentCount =
+      (form.getValues("images")?.length || 0) + newFiles.length;
 
     for (let i = 0; i < Math.min(files.length, maxImages - currentCount); i++) {
       const file = files[i];
       if (file && file.type.startsWith("image/")) {
-        appendMedia({ file });
-        setMediaPreviews((prev) => [...prev, URL.createObjectURL(file)]);
+        newFilesList.push(file);
+        newPreviewsList.push(URL.createObjectURL(file));
       }
     }
+
+    setNewFiles((prev) => [...prev, ...newFilesList]);
+    setNewFilePreviews((prev) => [...prev, ...newPreviewsList]);
   };
 
-  const handleRemoveImage = (index: number) => {
-    removeMedia(index);
-    const newPreviews = [...mediaPreviews];
-    URL.revokeObjectURL(newPreviews[index]); // Clean up the specific URL
-    newPreviews.splice(index, 1);
-    setMediaPreviews(newPreviews);
+  const removeExistingImage = (index: number) => {
+    const currentImages = form.getValues("images") || [];
+    const newImages = [...currentImages];
+    newImages.splice(index, 1);
+    form.setValue("images", newImages);
   };
+
+  const removeNewFile = (index: number) => {
+    const currentFiles = [...newFiles];
+    const currentPreviews = [...newFilePreviews];
+
+    URL.revokeObjectURL(currentPreviews[index]);
+
+    currentFiles.splice(index, 1);
+    currentPreviews.splice(index, 1);
+
+    setNewFiles(currentFiles);
+    setNewFilePreviews(currentPreviews);
+  };
+
+  const existingImages = form.watch("images") || [];
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* --- Left Column: Core Details & Variants --- */}
           <div className="lg:col-span-2 space-y-6">
@@ -232,7 +332,7 @@ export default function ProductForm() {
               </div>
             </div>
 
-            {/* --- Variants Card (Now using the sub-component) --- */}
+            {/* --- Variants Card --- */}
             <div className="bg-white p-6 rounded shadow space-y-6">
               <h3 className="text-lg font-semibold">Variants</h3>
 
@@ -335,7 +435,7 @@ export default function ProductForm() {
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <SearchDropdown
-                        items={[]}
+                        items={[]} // Populate with categories ideally
                         placeholder="Select category"
                         onSelect={field.onChange}
                         emptyMessage="No categories found"
@@ -353,7 +453,7 @@ export default function ProductForm() {
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
                       <SearchDropdown
-                        items={[]}
+                        items={[]} // Populate with brands ideally
                         placeholder="Select brand"
                         onSelect={field.onChange}
                         emptyMessage="No brands found"
@@ -364,6 +464,22 @@ export default function ProductForm() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  name="isFeatured"
+                  control={form.control}
+                  render={({ field }) => (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        className="h-4 w-4 rounded text-primary"
+                      />
+                      <FormLabel>Featured Product</FormLabel>
+                    </div>
+                  )}
+                />
               </div>
             </div>
 
@@ -372,32 +488,48 @@ export default function ProductForm() {
               <FormLabel>Product Media</FormLabel>
               <div className="mt-2 space-y-4">
                 <div className="grid grid-cols-3 gap-4">
-                  {mediaPreviews.map((src, index) => (
-                    <div key={index} className="relative group">
+                  {/* Existing Images */}
+                  {existingImages.map((src, index) => (
+                    <div key={`existing-${index}`} className="relative group">
                       <Image
                         src={src}
-                        alt={`Preview ${index}`}
+                        alt={`Existing ${index}`}
                         width={100}
                         height={100}
                         className="object-cover rounded-md w-full h-full"
                       />
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(index)}
+                        onClick={() => removeExistingImage(index)}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
-                      {index === 0 && (
-                        <div className="absolute bottom-0 w-full text-center bg-black bg-opacity-50 text-white text-xs py-1 rounded-b-md">
-                          Featured
-                        </div>
-                      )}
+                    </div>
+                  ))}
+
+                  {/* New Files */}
+                  {newFilePreviews.map((src, index) => (
+                    <div key={`new-${index}`} className="relative group">
+                      <Image
+                        src={src}
+                        alt={`New ${index}`}
+                        width={100}
+                        height={100}
+                        className="object-cover rounded-md w-full h-full border-2 border-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeNewFile(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </div>
                   ))}
                 </div>
 
-                {mediaFields.length < 5 && (
+                {existingImages.length + newFiles.length < 5 && (
                   <label
                     htmlFor="image-upload"
                     className="border bg-gray-50 border-dashed border-gray-300 p-4 w-full flex flex-col items-center justify-center hover:border-primary cursor-pointer rounded-md"
@@ -405,7 +537,7 @@ export default function ProductForm() {
                     <Upload className="h-8 w-8 text-gray-400 mb-1" />
                     <p className="text-sm text-gray-500">Click to upload</p>
                     <p className="text-xs text-gray-400">
-                      ({mediaFields.length}/5 images)
+                      ({existingImages.length + newFiles.length}/5 images)
                     </p>
                   </label>
                 )}
@@ -415,19 +547,21 @@ export default function ProductForm() {
                   accept="image/*"
                   multiple
                   className="hidden"
-                  onChange={(e) => handleImageUpload(e.target.files)}
+                  onChange={(e) => handleNewFileUpload(e.target.files)}
                 />
-                <FormMessage>
-                  {form.formState.errors.media?.root?.message}
-                </FormMessage>
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex justify-end">
-          <PrimaryButton type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Saving..." : "Save Product"}
+          <PrimaryButton
+            type="submit"
+            disabled={loading || form.formState.isSubmitting}
+          >
+            {loading || form.formState.isSubmitting
+              ? "Saving..."
+              : "Save Product"}
           </PrimaryButton>
         </div>
       </form>

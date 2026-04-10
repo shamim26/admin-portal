@@ -22,12 +22,15 @@ import {
   TableBody,
 } from "@/components/ui/table";
 import { SortableItem } from "./SortableItems";
-
 import { useCategoryStore } from "@/stores/category.store";
+import { CategoryDTO } from "../category.dto";
 
-// Initial data removed in favor of store
 
-export default function CategoryTable() {
+export default function CategoryTable({
+  onEdit,
+}: {
+  onEdit?: (category: CategoryDTO) => void;
+}) {
   const { categories, reorderCategories } = useCategoryStore();
 
   // Define sensors to detect drag operations (e.g., pointer/mouse)
@@ -38,8 +41,8 @@ export default function CategoryTable() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = categories.findIndex((item) => item.id === active.id);
-      const newIndex = categories.findIndex((item) => item.id === over.id);
+      const oldIndex = categories.findIndex((item) => item._id === active.id);
+      const newIndex = categories.findIndex((item) => item._id === over.id);
       const reorderedCategories = arrayMove(categories, oldIndex, newIndex);
 
       // Update store and persist
@@ -66,12 +69,17 @@ export default function CategoryTable() {
         <TableBody>
           {/* SortableContext provides the context for the sortable items */}
           <SortableContext
-            items={categories}
+            items={categories.map((c) => c._id)}
             strategy={verticalListSortingStrategy}
           >
             {categories.length > 0 ? (
-              categories.map((category) => (
-                <SortableItem key={category.id} category={category} />
+              categories.map((category, index) => (
+                <SortableItem
+                  key={category._id}
+                  category={category}
+                  index={index + 1}
+                  onEdit={onEdit}
+                />
               ))
             ) : (
               <TableRow>

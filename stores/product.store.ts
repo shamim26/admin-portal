@@ -13,12 +13,21 @@ type ProductStore = {
   currentPage: number;
   totalProducts: number;
 
+  // Stats State
+  stats: {
+    totalProducts: number;
+    lowStock: number;
+    outOfStock: number;
+  };
+
   // Actions
   fetchAllProducts: (options?: GetProductDto) => Promise<void>;
+  fetchStats: () => Promise<void>;
   fetchProductById: (id: string) => Promise<void>;
   createProduct: (product: Partial<Product>) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  importProducts: (file: File) => Promise<void>;
 
   // State setters
   setPage: (page: number) => void;
@@ -32,6 +41,11 @@ const useProductStore = create<ProductStore>((set, get) => ({
   totalPages: 0,
   currentPage: 1,
   totalProducts: 0,
+  stats: {
+    totalProducts: 0,
+    lowStock: 0,
+    outOfStock: 0,
+  },
 
   setPage: (page: number) => set({ currentPage: page }),
 
@@ -50,13 +64,24 @@ const useProductStore = create<ProductStore>((set, get) => ({
           totalProducts: payload.totalProducts || 0,
         });
       } else {
-        // Fallback or error if structure is unexpected
         set({ error: "Invalid response structure" });
       }
     } catch (error: any) {
       set({ error: error.message || "Failed to fetch products" });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  fetchStats: async () => {
+    try {
+      const response = await ProductService.getStats();
+      const payload = response.data?.payload;
+      if (payload) {
+        set({ stats: payload });
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch stats", error);
     }
   },
 
@@ -86,7 +111,7 @@ const useProductStore = create<ProductStore>((set, get) => ({
       }
     } catch (error: any) {
       set({ error: error.message || "Failed to create product" });
-      throw error; // Re-throw so component can handle success/failure UI
+      throw error;
     } finally {
       set({ loading: false });
     }
@@ -100,7 +125,7 @@ const useProductStore = create<ProductStore>((set, get) => ({
       if (response.status === 200) {
         set((state) => ({
           products: state.products.map((p) =>
-            p.id === id ? { ...p, ...productData } : p
+            p.id === id ? { ...p, ...productData } : p,
           ),
           currentProduct:
             state.currentProduct?.id === id
@@ -127,6 +152,23 @@ const useProductStore = create<ProductStore>((set, get) => ({
       }
     } catch (error: any) {
       set({ error: error.message || "Failed to delete product" });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  importProducts: async (file: File) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await ProductService.importProducts(file);
+      if (response.status === 201) {
+        // Refresh products and stats
+        get().fetchAllProducts({ page: 1 });
+        get().fetchStats();
+      }
+    } catch (error: any) {
+      set({ error: error.message || "Failed to import products" });
       throw error;
     } finally {
       set({ loading: false });

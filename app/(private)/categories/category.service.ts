@@ -18,8 +18,13 @@ export class CategoryService {
     return response.data;
   }
 
+  static async getCategoryTree() {
+    const response = await apiClient.get("/categories/tree");
+    return response.data;
+  }
+
   static async updateCategory(id: string, name: string, parent?: string) {
-    const response = await apiClient.put(`/categories/${id}`, { name, parent });
+    const response = await apiClient.patch(`/categories/${id}`, { name, parent });
     return response.data;
   }
 

@@ -11,8 +11,11 @@ import { CustomSwitch } from "@/components/ui/switch";
 import { useCategoryStore } from "@/stores/category.store";
 import { useEffect } from "react";
 
+import { CategoryDTO } from "./category.dto";
+
 export default function CategoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<CategoryDTO | null>(null);
   const [treeView, setTreeView] = useState(false);
 
   const {
@@ -53,7 +56,16 @@ export default function CategoryPage() {
         Add Category
       </PrimaryButton>
 
-      {treeView ? <TreeView /> : <CategoryTable />}
+      {treeView ? (
+        <TreeView />
+      ) : (
+        <CategoryTable
+          onEdit={(cat) => {
+            setCurrentCategory(cat);
+            setIsModalOpen(true);
+          }}
+        />
+      )}
 
       {!treeView && (
         <DynamicPagination
@@ -64,7 +76,11 @@ export default function CategoryPage() {
       )}
       <CategoryForm
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setCurrentCategory(null);
+        }}
+        initialData={currentCategory}
       />
     </div>
   );

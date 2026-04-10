@@ -16,9 +16,18 @@ export type CategoryResponse = {
 };
 
 export type CategoryDTO = {
-  id: string;
+  _id: string;
   name: string;
-  parent?: string | null;
+  parent?: { _id: string; name: string } | string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CategoryTreeDTO = {
+  _id: string;
+  name: string;
+  parent?: CategoryTreeDTO | string | null;
+  children?: CategoryTreeDTO[];
   createdAt: Date;
   updatedAt: Date;
 };

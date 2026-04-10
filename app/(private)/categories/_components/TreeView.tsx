@@ -1,12 +1,15 @@
-import { buildCategoryTree } from "@/utils/category-tree";
+import { useEffect } from "react";
 import { useCategoryStore } from "@/stores/category.store";
 import { TreeNode } from "./TreeNode";
 
 export default function TreeView() {
-  const { categories } = useCategoryStore();
-  const categoryTree = buildCategoryTree(categories);
+  const { categoryTree, fetchCategoryTree } = useCategoryStore();
 
-  if (categories.length === 0) {
+  useEffect(() => {
+    fetchCategoryTree();
+  }, [fetchCategoryTree]);
+
+  if (!categoryTree || categoryTree.length === 0) {
     return (
       <div className="text-center p-4 text-gray-500">No categories found</div>
     );

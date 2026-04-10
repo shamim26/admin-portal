@@ -5,33 +5,40 @@ import { EditIcon } from "lucide-react";
 import React from "react";
 import ProductGallery from "../_components/ProductGallery";
 
+import Link from "next/link";
+import useProductStore from "@/stores/product.store";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { ROUTES } from "@/lib/slugs";
+
 export default function ProductDetailPage() {
-  // --- Product Data ---
+  const { id } = useParams();
+  const { fetchProductById, currentProduct, loading } = useProductStore();
+
+  useEffect(() => {
+    if (id) fetchProductById(id as string);
+  }, [id, fetchProductById]);
+
+  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (!currentProduct)
+    return <div className="p-10 text-center">Product not found</div>;
+
   const product = {
-    name: "Aura Drone X4",
-    price: "$1,299.99",
-    originalPrice: "$1,499.99",
-    description:
-      "Experience the future of aerial photography with the Aura Drone X4. Featuring a 4K HDR camera, 30-minute flight time, and advanced obstacle avoidance, it's the perfect companion for creators and adventurers alike.",
-    features: [
-      "4K HDR Video",
-      "30-Min Flight Time",
-      "Obstacle Sensing",
-      "Foldable Design",
-    ],
-    images: [
-      "https://images.pexels.com/photos/2100075/pexels-photo-2100075.jpeg",
-      "https://images.pexels.com/photos/442587/pexels-photo-442587.jpeg",
-      "https://images.pexels.com/photos/724921/pexels-photo-724921.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-      "https://images.pexels.com/photos/1005644/pexels-photo-1005644.jpeg",
-    ],
+    name: currentProduct.name,
+    price: `$${currentProduct.pricing?.basePrice || currentProduct.price || 0}`,
+    originalPrice: currentProduct.pricing?.compareAtPrice
+      ? `$${currentProduct.pricing.compareAtPrice}`
+      : null,
+    description: currentProduct.description,
+    features: (currentProduct.specifications || []).map(
+      (s: any) => `${s.key}: ${s.value}`,
+    ),
+    images:
+      currentProduct.images && currentProduct.images.length > 0
+        ? currentProduct.images
+        : ["https://placehold.co/800x800/e2e8f0/1e293b?text=No+Image"],
     imagePlaceholder:
-      "https://placehold.co/800x800/171717/ffffff?text=Aura+Drone+X4",
+      "https://placehold.co/800x800/e2e8f0/1e293b?text=No+Image",
   };
 
   return (
@@ -53,9 +60,14 @@ export default function ProductDetailPage() {
               <span className="text-4xl font-bold text-blue-400">
                 {product.price}
               </span>
-              <span className="text-xl  line-through">
-                {product.originalPrice}
+              <span className="text-4xl font-bold text-blue-400">
+                {product.price}
               </span>
+              {product.originalPrice && (
+                <span className="text-xl  line-through">
+                  {product.originalPrice}
+                </span>
+              )}
             </div>
 
             <p className=" leading-relaxed">{product.description}</p>
@@ -86,10 +98,12 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="mt-4">
-              <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 px-6 text-base font-semibold gap-2">
-                <EditIcon className="w-5 h-5" />
-                Edit Product
-              </Button>
+              <Link href={`${ROUTES.PRODUCTS_EDIT}/${currentProduct.id}`}>
+                <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 px-6 text-base font-semibold gap-2">
+                  <EditIcon className="w-5 h-5" />
+                  Edit Product
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
