@@ -8,6 +8,7 @@ import {
   ImageIcon,
   LogOutIcon,
   LayoutList,
+  TagsIcon,
 } from "lucide-react";
 import Brand from "./Brand";
 import Link from "next/link";
@@ -67,6 +68,11 @@ const navItems = [
     label: "Products",
     href: "/products",
     icon: <PackageIcon size={20} />,
+  },
+  {
+    label: "Brands",
+    href: "/brands",
+    icon: <TagsIcon size={20} />,
   },
   {
     label: "Orders",

@@ -24,15 +24,26 @@ export interface ProductSpecification {
   _id?: string;
 }
 
+export interface BrandReference {
+  _id: string;
+  name: string;
+  image?: string;
+}
+
+export interface CategoryReference {
+  _id: string;
+  name: string;
+}
+
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
   slug: string;
   description: string;
 
   // References
-  category: string; // ID
-  brand: string; // ID
+  category: string | CategoryReference; 
+  brand: string | BrandReference; 
   tags?: string[];
 
   // Media

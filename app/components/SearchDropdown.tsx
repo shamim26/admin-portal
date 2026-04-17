@@ -24,6 +24,7 @@ export default function SearchDropdown({
   onSelect,
   emptyMessage,
   loading,
+  value: controlledValue,
 }: {
   items: { label: string; value: string; id: string }[];
   onSearch: (value: string) => void;
@@ -31,9 +32,12 @@ export default function SearchDropdown({
   onSelect: (value: string) => void;
   emptyMessage: string;
   loading: boolean;
+  value?: string;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [internalValue, setInternalValue] = React.useState("");
+
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -68,8 +72,11 @@ export default function SearchDropdown({
                     key={item.value}
                     value={item.value}
                     onSelect={(currentValue) => {
-                      setValue(currentValue === value ? "" : currentValue);
-                      onSelect(currentValue);
+                      const newValue = currentValue === value ? "" : currentValue;
+                      if (controlledValue === undefined) {
+                        setInternalValue(newValue);
+                      }
+                      onSelect(newValue);
                       setOpen(false);
                     }}
                   >

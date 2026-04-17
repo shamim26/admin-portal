@@ -21,18 +21,23 @@ import { TextEditor } from "./TextEditor";
 import ProductVariant from "./ProductVariant";
 import { Textarea } from "@/components/ui/textarea";
 import useProductStore from "@/stores/product.store";
-import { Product } from "../product.dto";
+import { Product, CategoryReference, BrandReference, ProductVariantOption } from "../product.dto";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/slugs";
+import { useCategoryStore } from "@/stores/category.store";
+import { useBrandStore } from "@/stores/brand.store";
 
 // --- Zod Schema ---
 const variantSchema = z.object({
+  _id: z.string().optional(),
+  id: z.string().optional(),
   sku: z.string().min(1, "SKU is required"),
   price: z.coerce.number().min(0, "Price must be positive"),
   stock: z.coerce.number().min(0, "Stock must be positive"),
   options: z
     .array(
       z.object({
+        _id: z.string().optional(),
         option_name: z.string().min(1, "Option name is required"),
         option_value: z.string().min(1, "Option value is required"),
       }),
@@ -97,6 +102,26 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
   const [hasVariants, setHasVariants] = useState<boolean>(false);
 
+  const { allCategories, fetchAllCategories, loading: categoryLoading } = useCategoryStore();
+  const { allBrands, fetchAllBrands, loading: brandLoading } = useBrandStore();
+
+  useEffect(() => {
+    fetchAllCategories();
+    fetchAllBrands();
+  }, [fetchAllCategories, fetchAllBrands]);
+
+  const categoryItems = allCategories.map((c: CategoryReference) => ({
+    label: c.name,
+    value: (c._id) as string,
+    id: (c._id) as string,
+  }));
+
+  const brandItems = allBrands.map((b: BrandReference) => ({
+    label: b.name,
+    value: (b._id) as string,
+    id: (b._id) as string,
+  }));
+
   // default values
   const defaultValues: Partial<ProductFormValues> = {
     name: "",
@@ -130,8 +155,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       form.reset({
         name: initialData.name,
         description: initialData.description,
-        category: initialData.category,
-        brand: initialData.brand,
+        category: typeof initialData.category === "object" ? ((initialData.category as CategoryReference)?._id) : initialData.category as string,
+        brand: typeof initialData.brand === "object" ? ((initialData.brand as BrandReference)?._id) : initialData.brand as string,
         pricing: {
           basePrice: initialData.pricing?.basePrice || 0,
           compareAtPrice: initialData.pricing?.compareAtPrice || 0,
@@ -140,7 +165,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           initialData.variants?.map((v) => ({
             ...v,
             options:
-              v.options?.map((o) => ({
+              v.options?.map((o: ProductVariantOption) => ({
+                _id: o._id,
                 option_name: o.name,
                 option_value: o.values[0] || "",
               })) || [],
@@ -189,6 +215,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         ...v,
         options:
           v.options?.map((o) => ({
+            ...(o._id ? { _id: o._id } : {}),
             name: o.option_name,
             values: [o.option_value],
           })) || [],
@@ -207,17 +234,10 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         formData.append("images", file);
       });
 
-      if (initialData?.id) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await updateProduct(initialData.id, formData as any); // Type cast as any because store expects Partial<Product> but we send FormData.
-        // We need to update Store to accept FormData or creating wrapper.
-        // Actually Store calls Service. Service calls API. Service needs to handle FormData.
-        // I updated Store? No. I updated Service? Let's check Service.
-        // ProductService.createProduct takes Partial<Product>.
-        // I should update it to accept FormData | Partial<Product>.
+      if (initialData?._id) {
+        await updateProduct(initialData._id, formData as unknown as Partial<Product>);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await createProduct(formData as any);
+        await createProduct(formData as unknown as Partial<Product>);
       }
 
       router.push(ROUTES.PRODUCTS);
@@ -435,11 +455,12 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <SearchDropdown
-                        items={[]} // Populate with categories ideally
+                        items={categoryItems}
                         placeholder="Select category"
                         onSelect={field.onChange}
+                        value={field.value}
                         emptyMessage="No categories found"
-                        loading={false}
+                        loading={categoryLoading}
                         onSearch={() => {}}
                       />
                       <FormMessage className="text-red-500" />
@@ -453,11 +474,12 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
                       <SearchDropdown
-                        items={[]} // Populate with brands ideally
+                        items={brandItems}
                         placeholder="Select brand"
                         onSelect={field.onChange}
+                        value={field.value}
                         emptyMessage="No brands found"
-                        loading={false}
+                        loading={brandLoading}
                         onSearch={() => {}}
                       />
                       <FormMessage className="text-red-500" />

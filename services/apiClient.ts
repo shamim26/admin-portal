@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export type MWResponseType = {
   success: boolean;
   message?: string;
-  payload: any;
+  payload: unknown;
 };
 
 type RetryableConfig = unknown & { _retry?: boolean };
@@ -25,6 +25,14 @@ const apiClient: AxiosInstance = axios.create({
   },
   withCredentials: true,
 });
+
+  // Request interceptor to handle FormData
+  apiClient.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+    return config;
+  });
 
   // Response interceptor
   apiClient.interceptors.response.use(

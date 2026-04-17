@@ -26,7 +26,7 @@ export default function ProductGallery({ product }: { product: Product }) {
     e.currentTarget.style.transformOrigin = `center center`;
   };
   return (
-    <div className="flex w-7/12 flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <div className="relative w-full h-[500px] bg-gray-50 rounded-lg overflow-hidden group">
         <AnimatePresence mode="wait">
           <motion.img
@@ -62,8 +62,8 @@ export default function ProductGallery({ product }: { product: Product }) {
         onMouseDown={(e) => {
           const slider = e.currentTarget;
           let isDown = true;
-          let startX = e.pageX - slider.offsetLeft;
-          let scrollLeft = slider.scrollLeft;
+          const startX = e.pageX - slider.offsetLeft;
+          const scrollLeft = slider.scrollLeft;
 
           const onMouseLeave = () => {
             isDown = false;
@@ -103,6 +103,7 @@ export default function ProductGallery({ product }: { product: Product }) {
             }`}
             onDragStart={(e) => e.preventDefault()}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image}
               alt={`${product.name} thumbnail ${index + 1}`}

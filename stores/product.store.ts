@@ -59,15 +59,15 @@ const useProductStore = create<ProductStore>((set, get) => ({
       if (payload) {
         set({
           products: payload.products,
-          totalPages: payload.totalPages,
-          currentPage: payload.currentPage,
-          totalProducts: payload.totalProducts || 0,
+          totalPages: payload.pagination?.totalPages || 1,
+          currentPage: payload.pagination?.currentPage || 1,
+          totalProducts: payload.pagination?.totalItems || 0,
         });
       } else {
         set({ error: "Invalid response structure" });
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to fetch products" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to fetch products" });
     } finally {
       set({ loading: false });
     }
@@ -80,7 +80,7 @@ const useProductStore = create<ProductStore>((set, get) => ({
       if (payload) {
         set({ stats: payload });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch stats", error);
     }
   },
@@ -93,8 +93,8 @@ const useProductStore = create<ProductStore>((set, get) => ({
       if (payload) {
         set({ currentProduct: payload });
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to fetch product" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to fetch product" });
     } finally {
       set({ loading: false });
     }
@@ -109,8 +109,8 @@ const useProductStore = create<ProductStore>((set, get) => ({
           products: [...state.products, response.data.payload],
         }));
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to create product" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to create product" });
       throw error;
     } finally {
       set({ loading: false });
@@ -125,16 +125,16 @@ const useProductStore = create<ProductStore>((set, get) => ({
       if (response.status === 200) {
         set((state) => ({
           products: state.products.map((p) =>
-            p.id === id ? { ...p, ...productData } : p,
+            p._id === id ? { ...p, ...productData } : p,
           ),
           currentProduct:
-            state.currentProduct?.id === id
+            state.currentProduct?._id === id
               ? { ...state.currentProduct, ...productData }
               : state.currentProduct,
         }));
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to update product" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to update product" });
       throw error;
     } finally {
       set({ loading: false });
@@ -147,11 +147,11 @@ const useProductStore = create<ProductStore>((set, get) => ({
       const response = await ProductService.deleteProduct(id);
       if (response.status === 200) {
         set((state) => ({
-          products: state.products.filter((p) => p.id !== id),
+          products: state.products.filter((p) => p._id !== id),
         }));
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to delete product" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to delete product" });
       throw error;
     } finally {
       set({ loading: false });
@@ -167,8 +167,8 @@ const useProductStore = create<ProductStore>((set, get) => ({
         get().fetchAllProducts({ page: 1 });
         get().fetchStats();
       }
-    } catch (error: any) {
-      set({ error: error.message || "Failed to import products" });
+    } catch (error: unknown) {
+      set({ error: (error as Error).message || "Failed to import products" });
       throw error;
     } finally {
       set({ loading: false });

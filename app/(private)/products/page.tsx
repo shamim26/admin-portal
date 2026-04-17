@@ -34,8 +34,7 @@ export default function ProductsPage() {
     fetchStats,
     stats,
     importProducts,
-    products,
-    loading,
+    
   } = useProductStore();
 
   useEffect(() => {

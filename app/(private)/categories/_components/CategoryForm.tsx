@@ -44,7 +44,8 @@ export default function CategoryForm({
     },
   });
 
-  const { createCategory, updateCategory, categoryTree, fetchCategoryTree } = useCategoryStore();
+  const { createCategory, updateCategory, categoryTree, fetchCategoryTree } =
+    useCategoryStore();
 
   useEffect(() => {
     if (isOpen && categoryTree.length === 0) {
@@ -68,23 +69,34 @@ export default function CategoryForm({
     return flat;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getDescendantIds = (nodes: any[], targetId: string, found = false): string[] => {
+  const getDescendantIds = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    nodes: any[],
+    targetId: string,
+    found = false,
+  ): string[] => {
     let ids: string[] = [];
     nodes.forEach((node) => {
-      const isTargetOrDescendant = found || node._id === targetId || node.id === targetId;
-      if (isTargetOrDescendant && node._id !== targetId && node.id !== targetId) {
+      const isTargetOrDescendant =
+        found || node._id === targetId || node.id === targetId;
+      if (
+        isTargetOrDescendant &&
+        node._id !== targetId &&
+        node.id !== targetId
+      ) {
         ids.push(node._id || node.id);
       }
       if (node.children && node.children.length > 0) {
-        ids = ids.concat(getDescendantIds(node.children, targetId, isTargetOrDescendant));
+        ids = ids.concat(
+          getDescendantIds(node.children, targetId, isTargetOrDescendant),
+        );
       }
     });
     return ids;
   };
 
   const formattedCategories = flattenTree(categoryTree);
-  const invalidParentIds = initialData 
+  const invalidParentIds = initialData
     ? [initialData._id, ...getDescendantIds(categoryTree, initialData._id)]
     : [];
 
@@ -92,7 +104,10 @@ export default function CategoryForm({
     if (initialData) {
       form.reset({
         name: initialData.name,
-        parent: typeof initialData.parent === "object" ? initialData.parent?._id : initialData.parent || "",
+        parent:
+          typeof initialData.parent === "object"
+            ? initialData.parent?._id
+            : initialData.parent || "",
       });
     } else {
       form.reset({ name: "", parent: "" });
@@ -100,7 +115,8 @@ export default function CategoryForm({
   }, [initialData, form, isOpen]);
 
   const onSubmit = async (data: z.infer<typeof categorySchema>) => {
-    const parentValue = data.parent === "none" || !data.parent ? undefined : data.parent;
+    const parentValue =
+      data.parent === "none" || !data.parent ? undefined : data.parent;
     if (initialData) {
       const targetId = initialData._id;
       await updateCategory(targetId, data.name, parentValue);
@@ -115,7 +131,9 @@ export default function CategoryForm({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{initialData ? "Update Category" : "Add Category"}</DialogTitle>
+          <DialogTitle>
+            {initialData ? "Update Category" : "Add Category"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -134,26 +152,31 @@ export default function CategoryForm({
               control={form.control}
               name="parent"
               render={({ field }) => (
-                <div className="space-y-1 w-full">
+                <div className="space-y-1">
                   <label className="text-sm font-medium">Parent Category</label>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value || "none"}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select parent category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
                       {formattedCategories
-                        .filter((c) => !invalidParentIds.includes(c._id) && !invalidParentIds.includes(c.id))
+                        .filter(
+                          (c) =>
+                            !invalidParentIds.includes(c._id) &&
+                            !invalidParentIds.includes(c.id),
+                        )
                         .map((c) => {
                           const valId = c._id;
                           return (
-                          <SelectItem key={valId} value={valId as string}>
-                            {c.displayName}
-                          </SelectItem>
-                        )})}
+                            <SelectItem key={valId} value={valId as string}>
+                              {c.displayName}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
