@@ -15,7 +15,7 @@ export class AuthService {
   }
 
   static async getUser() {
-    const response = await apiClient.get("/users");
+    const response = await apiClient.get("/users/profile");
     return response;
   }
 

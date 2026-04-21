@@ -1,13 +1,18 @@
 export type Customer = {
-  id: number;
+  _id: string;
   name: string;
   email: string;
   phone?: string;
   address?: Address;
   role: string;
   isBanned: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
+
+  // Added by stats
+  totalOrders?: number;
+  totalSpent?: number;
+  lastActivityDate?: string;
 };
 
 export type Address = {
@@ -16,4 +21,12 @@ export type Address = {
   state: string;
   country: string;
   zipCode: string;
+};
+
+export type GetCustomerDTO = {
+  search?: string;
+  page?: number;
+  limit?: number;
+  status?: string;
+  role?: string;
 };

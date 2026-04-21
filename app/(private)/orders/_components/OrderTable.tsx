@@ -1,14 +1,14 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ActionButton from "@/app/components/button/ActionButton";
+import DeleteModal from "@/app/components/modal/DeleteModal";
+import Link from "next/link";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -19,8 +19,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Eye, MoreHorizontal, Printer, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Eye, Printer, Trash2 } from "lucide-react";
 import { Order } from "../order.dto";
 import useOrderStore from "@/stores/order.store";
 import { useState } from "react";
@@ -49,9 +48,9 @@ const formatDate = (dateString: string) => {
 };
 
 export default function OrderTable({ orders, loading }: OrderTableProps) {
-  const router = useRouter();
   const { updateOrderStatus, deleteOrder, bulkUpdateStatus } = useOrderStore();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const getStatusVariant = (
     status: string,
@@ -109,9 +108,12 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this order?")) {
+    setDeletingId(id);
+    try {
       await deleteOrder(id);
       toast.success("Order deleted");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -159,125 +161,112 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
         </div>
       )}
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[40px]">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                checked={
+                  orders.length > 0 && selectedIds.length === orders.length
+                }
+                onChange={(e) => handleSelectAll(e.target.checked)}
+              />
+            </TableHead>
+            <TableHead>Order ID</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Total Amount</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.length === 0 ? (
             <TableRow>
-              <TableHead className="w-[40px]">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  checked={
-                    orders.length > 0 && selectedIds.length === orders.length
-                  }
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                />
-              </TableHead>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Total Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableCell
+                colSpan={8}
+                className="h-24 text-center text-muted-foreground"
+              >
+                No orders found.
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No orders found.
+          ) : (
+            orders.map((order) => (
+              <TableRow key={order._id}>
+                <TableCell>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    checked={selectedIds.includes(order._id)}
+                    onChange={(e) =>
+                      handleSelectOne(order._id, e.target.checked)
+                    }
+                  />
+                </TableCell>
+                <TableCell className="font-medium">
+                  {order.orderNumber}
+                </TableCell>
+                <TableCell>{order.user?.name || "N/A"}</TableCell>
+                <TableCell>
+                  {formatCurrency(order.totals?.grandTotal || 0)}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Badge
+                        variant={getStatusVariant(order.status)}
+                        className="cursor-pointer hover:opacity-80"
+                      >
+                        {order.status}
+                      </Badge>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {ALL_STATUSES.map((status) => (
+                        <DropdownMenuItem
+                          key={status}
+                          disabled={order.status === status}
+                          onClick={() => handleStatusChange(order._id, status)}
+                        >
+                          {status}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+                <TableCell>{order.paymentMethod}</TableCell>
+                <TableCell>{formatDate(order.createdAt)}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Link href={`/orders/${order._id}`}>
+                      <ActionButton>
+                        <Eye className="h-4 w-4" />
+                      </ActionButton>
+                    </Link>
+                    <Link href={`/orders/print/${order._id}`}>
+                      <ActionButton>
+                        <Printer className="h-4 w-4 text-primary" />
+                      </ActionButton>
+                    </Link>
+                    <DeleteModal
+                      title="Delete Order"
+                      description={`Are you sure you want to delete order "${order.orderNumber}"? This action cannot be undone.`}
+                      onConfirm={() => handleDelete(order._id)}
+                      isDeleting={deletingId === order._id}
+                    >
+                      <ActionButton>
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </ActionButton>
+                    </DeleteModal>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              orders.map((order) => (
-                <TableRow key={order._id}>
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      checked={selectedIds.includes(order._id)}
-                      onChange={(e) =>
-                        handleSelectOne(order._id, e.target.checked)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {order.orderNumber}
-                  </TableCell>
-                  <TableCell>{order.user?.name || "N/A"}</TableCell>
-                  <TableCell>
-                    {formatCurrency(order.totals?.grandTotal || 0)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(order.status)}>
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{order.paymentMethod}</TableCell>
-                  <TableCell>{formatDate(order.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[160px]">
-                        <DropdownMenuItem
-                          onClick={() => router.push(`/orders/${order._id}`)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            router.push(`/orders/print/${order._id}`)
-                          }
-                        >
-                          <Printer className="mr-2 h-4 w-4" />
-                          Print Invoice
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
-                            Status
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>
-                            {ALL_STATUSES.map((status) => (
-                              <DropdownMenuItem
-                                key={status}
-                                disabled={order.status === status}
-                                onClick={() =>
-                                  handleStatusChange(order._id, status)
-                                }
-                              >
-                                {status}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDelete(order._id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

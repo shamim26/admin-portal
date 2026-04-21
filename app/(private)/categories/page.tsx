@@ -10,6 +10,8 @@ import CategoryForm from "./_components/CategoryForm";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useCategoryStore } from "@/stores/category.store";
 import { useEffect } from "react";
+import useDebounce from "@/hooks/useDebounce";
+import useQuerySync from "@/hooks/useQuerySync";
 
 import { CategoryDTO } from "./category.dto";
 
@@ -17,10 +19,10 @@ export default function CategoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<CategoryDTO | null>(null);
   const [treeView, setTreeView] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 500);
 
   const {
-    fetchCategories,
-    search,
     setSearch,
     currentPage,
     totalPages,
@@ -28,8 +30,13 @@ export default function CategoryPage() {
   } = useCategoryStore();
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    setSearch(debouncedSearch);
+  }, [debouncedSearch, setSearch]);
+
+  useQuerySync({
+    search: debouncedSearch,
+    page: currentPage,
+  });
 
   return (
     <div>
@@ -47,8 +54,8 @@ export default function CategoryPage() {
           </div>
           <SearchField
             placeholder="Search"
-            searchValue={search}
-            setSearchValue={setSearch}
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
           />
         </div>
       </div>

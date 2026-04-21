@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import ProductFilter from "./_components/ProductFilter";
 import useDebounce from "@/hooks/useDebounce";
+import useQuerySync from "@/hooks/useQuerySync";
 import PrimaryButton from "@/app/components/button/PrimaryButton";
 import { ProductService } from "./product.service";
+import { toast } from "sonner";
 
 export default function ProductsPage() {
   const [searchValue, setSearchValue] = useState("");
@@ -34,13 +36,18 @@ export default function ProductsPage() {
     fetchStats,
     stats,
     importProducts,
-    
   } = useProductStore();
 
   useEffect(() => {
     fetchAllProducts({ ...filters, search: debouncedSearchValue, page: 1 });
     fetchStats();
   }, [fetchAllProducts, filters, debouncedSearchValue, fetchStats]);
+
+  useQuerySync({
+    search: debouncedSearchValue,
+    page: currentPage,
+    ...filters,
+  });
 
   const handlePageChange = (page: number) => {
     fetchAllProducts({ ...filters, search: searchValue, page });
@@ -76,6 +83,7 @@ export default function ProductsPage() {
           product.brand?.name || product.brand || "",
           // Stock: Sum variants stock
           product.variants?.reduce(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (acc: number, v: any) => acc + (v.stock || 0),
             0,
           ) || 0,
@@ -107,9 +115,9 @@ export default function ProductsPage() {
     if (file) {
       try {
         await importProducts(file);
-        alert("Import successful!");
-      } catch (e) {
-        alert("Import failed. See console.");
+        toast.success("Import successful!");
+      } catch (e: unknown) {
+        toast.error((e as Error).message);
       } finally {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }

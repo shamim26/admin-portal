@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import useOrderStore from "@/stores/order.store";
 import useDebounce from "@/hooks/useDebounce";
+import useQuerySync from "@/hooks/useQuerySync";
 import {
   Select,
   SelectContent,
@@ -41,7 +42,6 @@ export default function OrdersPage() {
 
   // Initial fetch and socket setup
   useEffect(() => {
-    fetchOrders();
     initSocket();
 
     // Polling fallback or just rely on socket
@@ -58,6 +58,12 @@ export default function OrdersPage() {
   useEffect(() => {
     setFilters({ search: debouncedSearch });
   }, [debouncedSearch, setFilters]);
+
+  useQuerySync({
+    search: debouncedSearch,
+    page: currentPage,
+    status: filters.status === "all" ? undefined : filters.status,
+  });
 
   // TODO: Fetch real stats from API if available, currently static or calculated from current page (inaccurate)
   // For now, we can render static or leave placeholders until a stats endpoint exists.

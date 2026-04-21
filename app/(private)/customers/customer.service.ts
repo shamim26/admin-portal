@@ -1,39 +1,29 @@
 import apiClient from "@/services/apiClient";
-import { Customer } from "./customer.dto";
+import { GetCustomerDTO } from "./customer.dto";
 
 export class CustomerService {
-  static async getCustomers() {
-    const response = await apiClient.get("/users");
+  static async getCustomers(params?: GetCustomerDTO) {
+    const response = await apiClient.get("/users", { params });
     return response.data;
   }
 
-  static async getCustomerById(id: number) {
+  static async getCustomerById(id: string) {
     const response = await apiClient.get(`/users/${id}`);
     return response.data;
   }
 
-  static async createCustomer(customerData: Partial<Customer>) {
-    const response = await apiClient.post("/users", customerData);
-    return response.data;
-  }
-
-  static async updateCustomer(id: number, customerData: Partial<Customer>) {
-    const response = await apiClient.put(`/users/${id}`, customerData);
-    return response.data;
-  }
-
-  static async deleteCustomer(id: number) {
-    const response = await apiClient.delete(`/users/${id}`);
-    return response.data;
-  }
-
-  static async banCustomer(id: number) {
+  static async banCustomer(id: string) {
     const response = await apiClient.patch(`/users/${id}/ban`);
     return response.data;
   }
 
-  static async unbanCustomer(id: number) {
+  static async unbanCustomer(id: string) {
     const response = await apiClient.patch(`/users/${id}/unban`);
+    return response.data;
+  }
+
+  static async updateRole(id: string, role: string) {
+    const response = await apiClient.patch(`/users/${id}/role`, { role });
     return response.data;
   }
 }

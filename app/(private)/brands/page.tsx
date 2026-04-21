@@ -8,14 +8,16 @@ import DynamicPagination from "@/app/components/DynamicPagination";
 import BrandForm from "./_components/BrandForm";
 import { useBrandStore } from "@/stores/brand.store";
 import { BrandDTO } from "./brand.dto";
+import useDebounce from "@/hooks/useDebounce";
+import useQuerySync from "@/hooks/useQuerySync";
 
 export default function BrandsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentBrand, setCurrentBrand] = useState<BrandDTO | null>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 500);
 
   const {
-    fetchBrands,
-    search,
     setSearch,
     currentPage,
     totalPages,
@@ -23,8 +25,13 @@ export default function BrandsPage() {
   } = useBrandStore();
 
   useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+    setSearch(debouncedSearch);
+  }, [debouncedSearch, setSearch]);
+
+  useQuerySync({
+    search: debouncedSearch,
+    page: currentPage,
+  });
 
   return (
     <div>
@@ -33,8 +40,8 @@ export default function BrandsPage() {
         <div className="flex items-center gap-2">
           <SearchField
             placeholder="Search brands"
-            searchValue={search}
-            setSearchValue={setSearch}
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
           />
         </div>
       </div>
